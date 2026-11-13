@@ -7,9 +7,9 @@ import {
   left_p, right_p, up_p, down_p, button1_p, button2_p, string_width, string_hash_to_newline,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_rectangle, draw_sprite,
   draw_sprite_ext, draw_text, draw_text_colour, draw_text_transformed, draw_line_width,
-} from '../runtime/gm.js?v=20261113214419';
-import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261113214419';
-import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261113214419';
+} from '../runtime/gm.js?v=20261113220951';
+import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261113220951';
+import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261113220951';
 
 const sin = Math.sin, cos = Math.cos;
 const g = global;
@@ -1443,14 +1443,34 @@ class EncounterBasic extends Instance {
     g.interact = 2;
     S.scr_encountersetup(g.encounterno);
     this.count = 0;
+    this.battlestartdelay = 0;
     this.c = [];
-    const sx = g.introx || [g.heromakex[0] + 65, g.heromakex[1] + 65, g.heromakex[2] + 65];
-    const sy = g.introy || g.heromakey;
-    this.c[0] = S.scr_dark_marker(sx[0], sy[0], 'spr_kris_sword_jump_down');
-    this.count += 1;
-    this.c[1] = S.scr_dark_marker(sx[1], sy[1], 'spr_susier_dark_unhappy');
-    this.count += 1;
-    this.c[2] = S.scr_dark_marker(sx[2], sy[2], 'spr_ralsei_walk_right_unhappy');
+    this.gerson = null;
+    if (g.encounterno == 160 && G.gersonArena) {
+      // Chapter 4, room_dw_church_arena: only Susie, from where she landed in the scene before the
+      // fight (c_jump to 623, 149), and the battle starts 25 frames later.
+      g.heromakex[0] = 629;
+      g.heromakey[0] = 149;
+      this.battlestartdelay = 25;
+      this.c[0] = S.scr_dark_marker(623, 149, 'spr_susie_idle');
+      // Gerson laughs where he stands (obj_npc_gerson state 11) until his marker is replaced by the
+      // enemy (scr_battle moves it to monstermake over 20 frames; obj_doom removes it after 25 + 25).
+      this.gerson = S.scr_dark_marker(g.monstermakex[0], g.monstermakey[0], 'spr_gerson_laugh_scene');
+      this.gerson.image_speed = 0.2;
+      this.gerson.depth = 0;
+    } else {
+      const sx = g.introx || [g.heromakex[0] + 65, g.heromakex[1] + 65, g.heromakex[2] + 65];
+      const sy = g.introy || g.heromakey;
+      this.c[0] = S.scr_dark_marker(sx[0], sy[0], 'spr_kris_sword_jump_down');
+      if (g.char[1]) {
+        this.count += 1;
+        this.c[1] = S.scr_dark_marker(sx[1], sy[1], 'spr_susier_dark_unhappy');
+      }
+      if (g.char[2]) {
+        this.count += 1;
+        this.c[2] = S.scr_dark_marker(sx[2], sy[2], 'spr_ralsei_walk_right_unhappy');
+      }
+    }
     for (let i = 0; i < this.count + 1; i++) {
       const m = this.c[i];
       m.direction = point_direction(m.x, m.y, g.heromakex[i], g.heromakey[i]);
@@ -1489,10 +1509,16 @@ class EncounterBasic extends Instance {
     }
     if (this.fightcon == 2) {
       this.counttimer += 1;
-      if (this.counttimer >= 15) {
+      // (Chapter 4) the heroes hold their last frame
+      for (let i = 0; i < this.count + 1; i++) {
+        const m = this.c[i];
+        if (m.image_index + m.image_speed >= m.image_number - 1) m.image_speed = 0;
+      }
+      if (this.counttimer >= 15 + this.battlestartdelay) {
         this.counttimer = 0;
         this.fightcon = 3;
         for (let i = 0; i < this.count + 1; i++) instance_destroy(this.c[i]);
+        if (this.gerson) instance_destroy(this.gerson);
         instance_create(0, 0, 'obj_battlecontroller');
         instance_destroy(this);
       }

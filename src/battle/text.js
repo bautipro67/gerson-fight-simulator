@@ -5,11 +5,11 @@ import {
   instance_number, withObj, random, button1_p, button2_h, string_length, string_char_at,
   string_insert, string_delete, draw_set_font, draw_set_color, draw_get_color, draw_set_alpha, draw_text,
   draw_text_transformed, draw_text_color, draw_rectangle, draw_sprite_ext, draw_self, button3_h, instancesOf,
-} from '../runtime/gm.js?v=20261114013728';
-import { snd_play, snd_stop, snd_volume, snd_pitch } from '../runtime/audio.js?v=20261114013728';
+} from '../runtime/gm.js?v=20261114032333';
+import { snd_play, snd_stop, snd_volume, snd_pitch } from '../runtime/audio.js?v=20261114032333';
 
 const sin = Math.sin;
-import { fontName, splitCaller, view_x, view_y } from './common.js?v=20261114013728';
+import { fontName, splitCaller, view_x, view_y } from './common.js?v=20261114032333';
 
 // Text sounds that exist in this build; the others are silent.
 const TEXTSND = {
@@ -18,7 +18,7 @@ const TEXTSND = {
 };
 // Tenna's voice: one of nine takes at a random pitch (scr_textsound, Chapter 3).
 const TV_VOICES = ['snd_tv_voice_short', ...[2, 3, 4, 5, 6, 7, 8, 9].map(n => 'snd_tv_voice_short_' + n)];
-import { G } from '../runtime/gm.js?v=20261114013728';
+import { G } from '../runtime/gm.js?v=20261114032333';
 const tsnd = n => TEXTSND[n] ?? null;
 
 // scr_textsetup(font, color, x, y, charline, shake, rate, sound, hspace, vspace, special)
@@ -423,6 +423,14 @@ export class Writer extends Instance {
           this.colorchange = 1;
           if (nextchar2 in XCOLOR) this.xcolor = XCOLOR[nextchar2];
           if (nextchar2 == '0') this.xcolor = this.mycolor;
+        }
+        // \C2 - \C4: the Chapter 2+ choice box (obj_choicer_neo) with 2 - 4 options; the writer waits.
+        if (nextchar == 'C' && (nextchar2 == '2' || nextchar2 == '3' || nextchar2 == '4')) {
+          if (!instance_exists('obj_choicer_neo')) {
+            this.choicer = instance_create(0, 0, 'obj_choicer_neo');
+            this.choicer.choicetotal = Number(nextchar2) - 1;
+          }
+          this.halt = 5;
         }
         if (nextchar == 'M') {
           const v = '0123456789'.indexOf(nextchar2);

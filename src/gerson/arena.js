@@ -2,13 +2,13 @@
 // A gradient sky, the church window (stained glass, rain, and what the story is about: card castle
 // colours, the city, Tenna's stars, the hammer of the prophecy, falling leaves, the bell), and the
 // arena floor recoloured through spr_dw_gerson_arena_palette (pal_swap) as Gerson tells each chapter.
-// The hammer is drawn through a noise shader in the game; here it is drawn as it is, at the same alpha.
+// The hammer is drawn through the game's noise shader (shd_prophecy), rebuilt below with canvas blending.
 import {
   G, global, Instance, defineObject, getSprite, fx, fy, draw_sprite_ext, draw_set_color, draw_set_alpha, draw_rectangle,
   merge_color, bgr, random_range, choose, lerp, surface_create, surface_exists, surface_set_target, surface_reset_target,
   draw_clear_alpha, draw_surface, draw_surface_ext, draw_surface_part, draw_set_blend_mode, instancesOf,
-} from './rt.js?v=20261114013728';
-import { scr_lerpvar, scr_approach, camerax, cameray, camerawidth } from './common.js?v=20261114013728';
+} from './rt.js?v=20261114032333';
+import { scr_lerpvar, scr_approach, camerax, cameray, camerawidth } from './common.js?v=20261114032333';
 
 const colorset = (r, g, b, l) => ({ r: bgr(r), g: bgr(g), b: bgr(b), l: bgr(l) });
 const gradientset = (t, b) => ({ t: bgr(t), b: bgr(b) });
@@ -62,6 +62,50 @@ function recolouredFloor(col) {
   x.putImageData(d, 0, 0);
   floors.set(col, c);
   return c;
+}
+
+// shd_prophecy, the hammer of the prophecy in the window: the sprite's shape filled with two noise
+// textures that scroll diagonally, tinted light blue. Per pixel p of the window surface the fragment
+// shader samples both 256x256 textures (each alone on its texture page) at mod(p / 2 + time, 256) / 256:
+//   rgb = col * (noise1 + noise2 * 0.4 * (1 + sin(time * 0.1)))
+//   alpha = sprite alpha * image_alpha * opacity
+// with time = get_timer() / 1000000 * 10. Canvas has no shaders, so each texture is tiled at twice its
+// size, multiplied by col, added with 'lighter' and cut to the sprite's shape with 'destination-in'.
+const PROPHECY_COL = 'rgb(' + [0.2588, 0.8157, 1].map(c => Math.round(c * 255)).join(',') + ')';
+let prophecy = null;
+function prophecyLayer(ctx, name, left, top, w, h, time) {
+  const spr = getSprite(name);
+  if (!spr?.img) return;
+  const start = v => ((((-2 * time - v) % 512) + 512) % 512) - 512;
+  for (let y = start(top); y < h; y += 512) {
+    for (let x = start(left); x < w; x += 512) ctx.drawImage(spr.img, fx(spr, 0), fy(spr, 0), 256, 256, x, y, 512, 512);
+  }
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = PROPHECY_COL;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = 'source-over';
+}
+function drawProphecy(o, opacity) {
+  const spr = getSprite(o.sprite_index);
+  if (!spr?.img) return;
+  const xs = o.image_xscale, ys = o.image_yscale;
+  const w = Math.ceil(spr.w * xs), h = Math.ceil(spr.h * ys), left = o.x - spr.ox * xs, top = o.y - spr.oy * ys;
+  if (!prophecy || prophecy.a.w !== w || prophecy.a.h !== h) prophecy = { a: surface_create(w, h), b: surface_create(w, h) };
+  const a = prophecy.a.ctx, b = prophecy.b.ctx;
+  const time = G.current_time() / 100;
+  a.clearRect(0, 0, w, h);
+  b.clearRect(0, 0, w, h);
+  prophecyLayer(a, 'IMAGE_DEPTH_EXTEND_MONO_SEAMLESS_POW2', left, top, w, h, time);
+  prophecyLayer(b, 'spr_perlin_noise_looping', left, top, w, h, time);
+  a.globalCompositeOperation = 'lighter';
+  a.globalAlpha = 0.4 * (1 + Math.sin(time * 0.1));
+  a.drawImage(prophecy.b.canvas, 0, 0);
+  a.globalAlpha = 1;
+  a.globalCompositeOperation = 'destination-in';
+  const f = Math.floor(o.image_index) % Math.max(1, spr.n);
+  a.drawImage(spr.img, fx(spr, f), fy(spr, f), spr.w, spr.h, 0, 0, spr.w * xs, spr.h * ys);
+  a.globalCompositeOperation = 'source-over';
+  draw_surface_ext(prophecy.a, left, top, 1, 1, 0, 0xffffff, o.image_alpha * opacity);
 }
 
 class ArenaBg extends Instance {
@@ -181,8 +225,11 @@ class ArenaBg extends Instance {
     for (let i = this.to_draw.length - 1; i >= 0; i--) {
       const o = this.to_draw[i];
       if (o.image_alpha <= 0) continue;
-      const alpha = o === this.hammerobj ? o.image_alpha * 0.6 + 0.1 * Math.sin(G.current_time() * 0.001) : o.image_alpha;
-      draw_sprite_ext(o.sprite_index, o.image_index, o.x, o.y, o.image_xscale, o.image_yscale, o.image_angle, o.image_blend, alpha);
+      if (o === this.hammerobj) {
+        drawProphecy(o, o.image_alpha * 0.6 + 0.1 * Math.sin(G.current_time() * 0.001));
+        continue;
+      }
+      draw_sprite_ext(o.sprite_index, o.image_index, o.x, o.y, o.image_xscale, o.image_yscale, o.image_angle, o.image_blend, o.image_alpha);
     }
     for (const wx of [232, -38, 92]) draw_sprite_ext('spr_gersonwindow_water', rain, wx, 0, 2, 2, 0, 0xffffff, 0.4 * this.window_opacity);
     draw_sprite_ext('bg_dw_gerson_arena_stained_glass', 0, 44, 0, 2, 2, 0, 0xffffff, 0.5 * this.window_opacity);

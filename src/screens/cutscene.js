@@ -9,15 +9,16 @@ import {
   G, global, Instance, defineObject, defineScript, S, instance_create, instance_destroy, instance_exists, instancesOf,
   draw_sprite_ext, draw_set_color, draw_rectangle, lerp, point_distance, point_direction, lengthdir_x, lengthdir_y,
   clamp, left_h, right_h, up_h, down_h, button2_h, sprite_get_width, sprite_get_height, sprite_get_xoffset,
-  sprite_get_yoffset, sprite_get_number,
-} from '../runtime/gm.js?v=20261114013728';
+  sprite_get_yoffset, sprite_get_number, button1_p, withObj, draw_set_font, draw_text, string_width,
+  string_hash_to_newline,
+} from '../runtime/gm.js?v=20261114032333';
 import {
   snd_play, snd_pitch, snd_volume, snd_init, snd_loop, snd_stop, snd_free_all, mus_loop_ext, mus_volume, mus_stop,
   mus_pause, mus_resume,
-} from '../runtime/audio.js?v=20261114013728';
-import { assets } from '../runtime/assets.js?v=20261114013728';
-import { scr_darkbox } from './common.js?v=20261114013728';
-import { scr_lerpvar_instance, scr_shakeobj, scr_script_repeat } from '../gerson/common.js?v=20261114013728';
+} from '../runtime/audio.js?v=20261114032333';
+import { assets } from '../runtime/assets.js?v=20261114032333';
+import { scr_darkbox } from './common.js?v=20261114032333';
+import { scr_lerpvar_instance, scr_shakeobj, scr_script_repeat } from '../gerson/common.js?v=20261114032333';
 
 // ---------------------------------------------------------------- rooms
 
@@ -368,7 +369,9 @@ class Dialoguer extends Instance {
     if (k && k.y > G.camY + 250) this.side = 0;
     this.alarm[0] = 1;
   }
-  alarm0() {
+  alarm0() { this.user0(); }
+  // Other_10: a new writer and face for global.msg (also after a choice, from obj_choicer_neo).
+  user0() {
     this.active = 1;
     const xx = Math.round(38 + G.camX), yy = Math.round(40 + G.camY);
     const w = instance_create(xx + 20, this.side === 0 ? yy - 10 : yy + 300, 'obj_writer');
@@ -412,6 +415,142 @@ class Dialoguer extends Instance {
 }
 defineObject('obj_dialoguer', Dialoguer);
 export const d_ex = () => instance_exists('obj_dialoguer');
+
+// scr_text(global.msc): the game's numbered conversations. Only the ones the scenes reach are
+// registered (registerText), under the game's numbers.
+const TEXTS = new Map();
+export function registerText(n, fn) { TEXTS.set(n, fn); }
+defineScript('scr_text', n => { TEXTS.get(n)?.(); });
+
+// ---------------------------------------------------------------- obj_choicer_neo
+
+// The choice box a writer opens with \C2 - \C4 (the dark world's style): up to four options from
+// global.choicemsg (0 left, 1 right, 2 up, 3 down), the small SOUL beside the one picked. Confirming
+// sets global.choice, and the dialoguer goes on with scr_text(global.msc + 1).
+class ChoicerNeo extends Instance {
+  create() {
+    this.alarm[1] = 3;
+    this.canchoose = 0;
+    this.dar = (global.darkzone ?? 1) + 1;
+    global.flag[33] = 0;
+    this.fighting = global.fighting == 1 && instance_exists('obj_battlecontroller') ? 1 : 0;
+    this.image_xscale = this.image_yscale = this.dar;
+    this.remfc = global.fc;
+    global.fc = 0;
+    this.xx = G.camX;
+    this.yy = G.camY;
+    const dl = first('obj_dialoguer');
+    let d = dl ? dl.side : -1;
+    if (this.fighting == 1) d = 1;
+    this.d_add = 0;
+    if (d == -1) {
+      const k = first('obj_mainchara');
+      if (k && k.y <= G.camY + 130 * this.dar) this.d_add = 155;
+    } else if (d != 0) this.d_add = 155;
+    // (depth 0 in the game, where it draws over the box because it is created after it)
+    this.depth = dl ? dl.depth - 5 : -600;
+    this.chx = 140 * this.dar + this.xx;
+    this.chy = (36 + this.d_add) * this.dar + this.yy + this.fighting * 30;
+    this.hx = this.chx;
+    this.hy = this.chy;
+    this.mychoice = -1;
+    global.choice = -1;
+    this.choiced = 0;
+    this.choicetotal = 3;
+    this.textposx = [0, 0, 0, 0];
+    this.textposy = [0, 0, 0, 0];
+    this.heartposx = [0, 0, 0, 0];
+    this.heartposy = [0, 0, 0, 0];
+    this.heartSprite = 'spr_heartsmall';
+  }
+  alarm1() {
+    this.canchoose = 1;
+    if (global.darkzone == 1 && this.choicetotal == 2) {
+      this.hy += 39;
+      this.hx += 31;
+    }
+  }
+  step() {
+    global.flag[33] = (global.flag[33] ?? 0) + 1;
+    if (!this.textinit) {
+      if (this.choicetotal == 1) this.yy -= global.darkzone == 1 ? 3 : 2;
+      this.textinit = 1;
+    }
+    if (this.canchoose == 1) {
+      if (this.mychoice >= 0 && button1_p()) this.user0();
+      if (this.choiced == 0) {
+        if (left_h()) this.mychoice = 0;
+        if (this.choicetotal >= 1 && right_h()) this.mychoice = 1;
+        if (this.choicetotal >= 2 && up_h()) this.mychoice = 2;
+        if (this.choicetotal >= 3 && down_h()) this.mychoice = 3;
+      }
+    }
+    draw_set_font(this.dar == 1 ? 'fnt_main' : 'fnt_mainbig');
+    const dar = this.dar, xx = this.xx, yy = this.yy, row = this.d_add, fy = this.fighting * 30;
+    const msg = i => string_hash_to_newline(global.choicemsg?.[i] ?? '');
+    const hx = this.heartposx, hy = this.heartposy, tx = this.textposx, ty = this.textposy;
+    hx[0] = xx + 30 * dar;
+    hy[0] = yy + (34 + row) * dar + fy;
+    tx[0] = hx[0] + 16 * dar;
+    ty[0] = yy + (13 + row) * dar + fy;
+    if (this.choicetotal >= 1) {
+      hx[1] = xx + 276 * dar - string_width(msg(1));
+      hy[1] = yy + (34 + row) * dar + fy;
+      tx[1] = hx[1] + 16 * dar;
+      ty[1] = yy + (13 + row) * dar + fy;
+    }
+    if (this.choicetotal >= 2) {
+      const msg0right = hx[0] + 16 * dar + string_width(msg(0)), msg1left = hx[1];
+      let msg2width = string_width(msg(2)) + 16 * dar;
+      if (this.choicetotal == 3) msg2width = Math.max(msg2width, string_width(msg(3)) + 16 * dar);
+      hx[2] = msg0right + (msg1left - msg0right) / 2 - msg2width / 2;
+      hy[2] = yy + (16 + row) * dar + fy;
+      tx[2] = hx[2] + 16 * dar;
+      ty[2] = yy + (13 + row) * dar + fy;
+    }
+    if (this.choicetotal >= 3) {
+      hx[3] = hx[2];
+      hy[3] = yy + (60 + row) * dar + fy;
+      tx[3] = hx[3] + 16 * dar;
+      ty[3] = yy + (56 + row) * dar + fy;
+    }
+    if (this.mychoice >= 0) {
+      this.hx = hx[this.mychoice];
+      this.hy = hy[this.mychoice];
+    }
+  }
+  // Other_10
+  user0() {
+    if (this.canchoose == 1 && this.choiced == 0) {
+      this.choiced = 1;
+      global.choice = this.mychoice;
+      this.alarm[0] = 1;
+    }
+  }
+  alarm0() {
+    const dl = first('obj_dialoguer');
+    if (dl) {
+      withObj('obj_face', f => instance_destroy(f));
+      if (dl.writer && dl.writer.alive) instance_destroy(dl.writer);
+      global.fc = this.remfc;
+      global.msc = (global.msc ?? 0) + 1;
+      S.scr_text(global.msc);
+      dl.user0();
+    }
+    if (this.fighting == 1) withObj('obj_writer', w => instance_destroy(w));
+    instance_destroy(this);
+  }
+  draw() {
+    if (this.canchoose != 1) return;
+    draw_set_font(this.dar == 1 ? 'fnt_main' : 'fnt_mainbig');
+    for (let i = 0; i < this.choicetotal + 1; i++) {
+      draw_set_color(this.mychoice == i ? 0xffff00 : 0xffffff);
+      draw_text(this.textposx[i], this.textposy[i], string_hash_to_newline(global.choicemsg?.[i] ?? ''));
+    }
+    draw_sprite_ext(this.heartSprite, 0, this.hx, this.hy, this.image_xscale, this.image_yscale, 0, 0xffffff, 1);
+  }
+}
+defineObject('obj_choicer_neo', ChoicerNeo);
 
 // ---------------------------------------------------------------- obj_mainchara
 

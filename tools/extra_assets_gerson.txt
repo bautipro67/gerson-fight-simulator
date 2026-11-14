@@ -298,3 +298,6 @@ snd:snd_txtspam2
 snd:snd_ultraswing
 snd:snd_wallclaw
 snd:snd_wing
+# the arena hammer's shd_prophecy noise textures (obj_dw_church_arena_bg)
+spr:IMAGE_DEPTH_EXTEND_MONO_SEAMLESS_POW2
+spr:spr_perlin_noise_looping

@@ -2,7 +2,7 @@
 // - before the first fight (con 2-12): Susie finds the Magic Axe on its anvil, Gerson asks her to pay
 //   for it, then for a haircut; her swings all miss, his hammer comes down and the fight starts;
 // - after a loss (con 15, 20-22): what they say depends on how many times Susie lost (flag 853);
-// - the rematch (scr_text 1389-1390, then con 25 -> 11): "What, ready to fight again!?";
+// - the rematch (scr_text 1389-1390, then con 25 -> 11): "What, ready to fight again!?" and the choice;
 // - after the win (con 15, 30): the JusticeAxe and the ShadowCrystal, then the farewell (con 60-61).
 // The room is its pre-rendered picture (tools/render_rooms.py). Each scene ends where the game gives
 // Kris back to the player; the simulator's end screen follows. Susie always has room for the axe.
@@ -10,18 +10,18 @@ import {
   G, global, Instance, defineObject, defineScript, S, instance_create, instance_create_depth, instance_destroy,
   instance_exists, instancesOf, draw_sprite_ext, random, irandom_range, point_distance, font_add_sprite_ext, bgr,
   clamp, lerp,
-} from '../runtime/gm.js?v=20261114013728';
-import { snd_init, mus_loop_ext, mus_play, snd_free_all } from '../runtime/audio.js?v=20261114013728';
-import { loadMusic } from '../runtime/assets.js?v=20261114013728';
+} from '../runtime/gm.js?v=20261114032333';
+import { snd_init, mus_loop_ext, mus_play, snd_free_all } from '../runtime/audio.js?v=20261114032333';
+import { loadMusic } from '../runtime/assets.js?v=20261114032333';
 import {
   scr_dark_marker, scr_marker, scr_lerpvar_instance, scr_var_delayed, snd_play_x, scr_darksize,
-} from './common.js?v=20261114013728';
+} from './common.js?v=20261114032333';
 import {
   c, c_waitcustom_end, scr_cutscene_make, scr_actor_setup, scr_depth, d_ex, scr_flip, loadRoom, enterRoom,
-  scr_jump_to_point_sprite,
-} from '../screens/cutscene.js?v=20261114013728';
-import { startBattle } from '../battle/setup.js?v=20261114013728';
-import { gotoRoom, fadeOut } from '../screens/common.js?v=20261114013728';
+  scr_jump_to_point_sprite, registerText,
+} from '../screens/cutscene.js?v=20261114032333';
+import { startBattle } from '../battle/setup.js?v=20261114032333';
+import { gotoRoom, fadeOut } from '../screens/common.js?v=20261114032333';
 
 const BS = String.fromCharCode(92);
 const ROOM = 'room_dw_church_arena', ROOM_W = 1280, ROOM_H = 480;
@@ -212,7 +212,7 @@ class ChurchArena extends Instance {
     if (this.con == 10 && this.customcon == 1 && !d_ex()) this.hammerOfJustice();
     if (this.con == 11 && this.customcon == 1 && !d_ex()) this.startFight();
     if (this.con == 22 && this.customcon == 1 && !d_ex()) this.walkBackAfterLoss();
-    if (this.con == 25 && !d_ex()) this.rematchPan();
+    if (this.con == 25 && !d_ex() && !instance_exists('obj_cutscene_master')) this.rematchPan();
     if (this.con == 50 && !instance_exists('obj_cutscene_master')) this.afterWalkBack();
     if (this.con == 62 && !instance_exists('obj_cutscene_master')) this.finish('win');
     this.effects();
@@ -778,7 +778,9 @@ class ChurchArena extends Instance {
     fadeOut(30, () => S.startEnding(kind, { afterScene: true }));
   }
 
-  // ---- the rematch: Gerson asks, Susie answers for Kris (scr_text 1389, 1390)
+  // ---- the rematch: talking to Gerson after a loss (obj_npc_room in the arena: scr_text 1389, then
+  // 1390 after the choice). "Go Susie!" sets con 25; "Sorry, not enough time." leaves him for later,
+  // and the simulator goes back to the result screen.
   startRematch() {
     this.kind = 'rematch';
     const near = losses() >= 2;
@@ -793,17 +795,14 @@ class ChurchArena extends Instance {
     instance_create(0, 0, 'obj_sim_church_fadein');
     c.wait(20);
     c.msgside('bottom');
-    c.speaker('gerson');
-    c.msgsetloc(0, '* What^1, ready to fight again!?/');
-    c.facenext('susie', 2);
-    c.msgnextloc(BS + 'E2* Whaddya say^1, Kris?/%');
-    c.talk_wait();
-    c.speaker('susie');
-    c.msgsetloc(0, BS + "EH* Get ready^1, 'cause I'm not gonna hold anything back!/%");
+    c.call(() => {
+      global.msc = 1389;
+      S.scr_text(global.msc);
+    });
     c.talk_wait();
     c.call(() => {
       for (const m of instancesOf('obj_cutscene_master')) m.terminate = 1;
-      this.con = 25;
+      if (this.con != 25) this.finish('lose');
     });
   }
 
@@ -1281,6 +1280,27 @@ export async function startGersonRematch() {
   const a = await enterArena();
   a.startRematch();
 }
+
+// scr_text 1389 / 1390: the rematch question and Susie's answer.
+registerText(1389, () => {
+  global.choicemsg = ['#Go Susie!#Go Susie!', '#Sorry, not#enough time.', '', ''];
+  S.scr_speaker('gerson');
+  S.msgsetloc(0, '* What^1, ready to fight again!?/');
+  S.scr_anyface_next('susie', 2);
+  S.msgnextloc(BS + 'E2* Whaddya say^1, Kris?/');
+  S.msgnext(BS + 'C2');
+});
+registerText(1390, () => {
+  if (global.choice == 0) {
+    for (const a of instancesOf('obj_dw_church_arena')) a.con = 25;
+    S.scr_speaker('susie');
+    S.msgsetloc(0, BS + "EH* Get ready^1, 'cause I'm not gonna hold anything back!/%");
+  }
+  if (global.choice == 1) {
+    S.scr_speaker('susie');
+    S.msgsetloc(0, BS + "EA* Sorry. We'll kick your ass later^1, old man./%");
+  }
+});
 
 defineScript('startGersonFight', startGersonFight);
 defineScript('startGersonAfterScene', startGersonAfterScene);

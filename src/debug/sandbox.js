@@ -9,13 +9,13 @@ import {
   instancesOf, event_user, choose, keyboard_check, keyboard_check_pressed, random_set_seed, round, S,
   draw_set_font, draw_set_halign, draw_set_color, draw_set_alpha, draw_rectangle, draw_text, draw_sprite_ext,
   fa_left, fa_center, merge_color, button1_p, vk, draw_self,
-} from '../runtime/gm.js?v=20261113220951';
-import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261113220951';
-import { audioReady, assets } from '../runtime/assets.js?v=20261113220951';
-import { gotoRoom } from '../screens/common.js?v=20261113220951';
-import { getBest, saveBest } from '../settings.js?v=20261113220951';
-import { drawSoulHat } from '../hats.js?v=20261113220951';
-import { tagParent } from '../gerson/common.js?v=20261113220951';
+} from '../runtime/gm.js?v=20261114012116';
+import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261114012116';
+import { audioReady, assets } from '../runtime/assets.js?v=20261114012116';
+import { gotoRoom } from '../screens/common.js?v=20261114012116';
+import { getBest, saveBest } from '../settings.js?v=20261114012116';
+import { drawSoulHat } from '../hats.js?v=20261114012116';
+import { tagParent } from '../gerson/common.js?v=20261114012116';
 
 // Gerson's turns in fight order (obj_hammer_of_justice_enemy Other_10: trueturn -> pattern):
 // [attackpattern, trueturn, name, object the pattern needs]. The names are the simulator's.
@@ -313,8 +313,11 @@ class SandboxController extends tagParent('obj_battlecontroller') {
       e.reachedendphase = 0;
       e.have_used_final_attack = false;
       e.introtalkcon = -1;
+      // In the fight the diagonals unlock in the "Diagonals" turn (trueturn 3) and stay: later
+      // attacks start with the octagon (some never unlock it themselves), without its sound again.
+      const diag = trueturn > 3 ? 1 : 0;
       Object.assign(e, { talked: 1, attacked: 0, rtimer: 0, attackcon: 0, state: 0, visible: true, image_alpha: 1,
-        endcon: 0, end_cutscene_version: 0, postenemyturnevent: 6, diagonal_enabled: 0, transformsfx: 0, goldcon: 0 });
+        endcon: 0, end_cutscene_version: 0, postenemyturnevent: 6, diagonal_enabled: diag, transformsfx: diag, goldcon: 0 });
       e.sprite_index = 'spr_gerson_idle';
       e.x = e.xstart;
       e.y = e.ystart;

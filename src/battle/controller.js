@@ -7,9 +7,9 @@ import {
   left_p, right_p, up_p, down_p, button1_p, button2_p, string_width, string_hash_to_newline,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_rectangle, draw_sprite,
   draw_sprite_ext, draw_text, draw_text_colour, draw_text_transformed, draw_line_width,
-} from '../runtime/gm.js?v=20261113220951';
-import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261113220951';
-import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261113220951';
+} from '../runtime/gm.js?v=20261114012116';
+import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261114012116';
+import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261114012116';
 
 const sin = Math.sin, cos = Math.cos;
 const g = global;
@@ -200,6 +200,11 @@ class BattleController extends Instance {
       if (this.endwait == 40) S.startEnding(G.gersonResult);
       return;
     }
+    // (Chapter 4) While Susie's finishing move plays, the controller does nothing: no menu, no
+    // battle text (Gerson's end waits for every writer to be gone), until the win at endtimer 105.
+    const ger = instancesOf('obj_hammer_of_justice_enemy')[0];
+    if (ger && ger.end_cutscene_version == 1 && !(ger.endcon == 5 && ger.endtimer >= 105)
+      && ((ger.endcon > 0 && ger.endtimer > 0) || ger.endcon > 1)) return;
     const c = bmc();
     if (this.victory == 1 && this.victoried == 0) this.victoryLatch();
     if (this.victoried == 1) {
@@ -725,15 +730,19 @@ class BattleController extends Instance {
       if (g.mercymod[i] >= g.mercymax[i]) mercydraw = 1;
       const namewidth = string_width(string_hash_to_newline(g.monstername[i]));
       if (tireddraw == 1) {
-        draw_set_color(aqcolor);
-        c1 = c2 = aqcolor;
+        if (g.encounterno != 31) {
+          draw_set_color(aqcolor);
+          c1 = c2 = aqcolor;
+        }
         draw_sprite('spr_tiredmark', 0, xx + 80 + namewidth + 40, yy + 385 + i * 30);
       }
+      // (Chapter 4) hidestar keeps the name white and hides the star: the Hammer of Justice has no
+      // MERCY (mercymax stays 0), so without it his name would always look spareable.
       if (mercydraw == 1) {
         draw_set_color(0xffff00);
-        c1 = 0xffff00;
-        if (tireddraw == 0) c2 = 0xffff00;
-        if (this.hidemercy == 0) draw_sprite('spr_sparestar', 0, xx + 80 + namewidth + 20, yy + 385 + i * 30);
+        if (!this.hidestar) c1 = 0xffff00;
+        if (tireddraw == 0 && !this.hidestar) c2 = 0xffff00;
+        if (this.hidemercy == 0 && !this.hidestar) draw_sprite('spr_sparestar', 0, xx + 80 + namewidth + 20, yy + 385 + i * 30);
       }
       draw_text_colour(xx + 80, yy + 375 + i * 30, string_hash_to_newline(g.monstername[i]), c1, c2, c2, c1, 1);
       if (g.bmenuno != 13) {
@@ -760,7 +769,7 @@ class BattleController extends Instance {
       }
       const mercyamt = Math.min(100, g.mercymod[i]);
       if (this.hidemercy == 0) {
-        const mercypercent = Math.min(100, ceil(g.mercymod[i] / g.mercymax[i] * 100));
+        const mercypercent = Math.min(100, round(g.mercymod[i] / g.mercymax[i] * 100)); // (Chapter 4 rounds)
         draw_set_color(merge_color(0xffa040, 0xff0000, 0.5));
         draw_rectangle(xx + 520, yy + 380 + i * 30, xx + 600, yy + 380 + i * 30 + 15, false);
         draw_set_color(0xffff00);

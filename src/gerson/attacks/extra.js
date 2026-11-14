@@ -1,14 +1,14 @@
 // Bells, Gerson's Rude Buster, the giant hammer and the box effects (machine-translated from the Chapter 4 GML by tools/gen_attacks.sh; edit tools/postfix.py, not this file)
 /* eslint-disable */
 import {
-  Instance, S, angle_difference, button1_p, button2_p, button3_p, choose, d3d_set_fog, defineObject, draw_clear_alpha, draw_get_color, draw_self, draw_set_alpha, draw_set_blend_mode, draw_set_color, draw_sprite_ext, draw_surface_ext, draw_text_color, global, gpu_set_blendmode_ext, instance_create, instance_create_depth, instance_destroy, instance_exists, instance_find, instance_nearest, instance_number, instancesOf, irandom, lengthdir_x, lengthdir_y, lerp, merge_color, point_direction, point_distance, random, snd_play, sprite_set_offset, surface_create, surface_exists, surface_reset_target, surface_set_target,
-} from '../rt.js?v=20261113220951';
+  G, Instance, S, angle_difference, button1_p, button2_p, button3_p, choose, d3d_set_fog, defineObject, draw_clear_alpha, draw_get_color, draw_self, draw_set_alpha, draw_set_blend_mode, draw_set_color, draw_sprite_ext, draw_surface_ext, draw_text_color, global, instance_create, instance_create_depth, instance_destroy, instance_exists, instance_find, instance_nearest, instance_number, instancesOf, irandom, lengthdir_x, lengthdir_y, lerp, merge_color, point_direction, point_distance, random, snd_play, sprite_set_offset, surface_create, surface_exists, surface_reset_target, surface_set_target,
+} from '../rt.js?v=20261114012116';
 import {
-  cameraheight, camerawidth, camerax, cameray, gt_maxx, gt_maxy, gt_minx, gt_miny, i_ex, scr_afterimage, scr_bullet_init, scr_lerpvar, scr_shakeobj, snd_play_pitch,
-} from '../common.js?v=20261113220951';
+  cameraheight, camerawidth, camerax, cameray, gt_maxx, gt_maxy, gt_minx, gt_miny, i_ex, room_height, room_width, scr_afterimage, scr_bullet_init, scr_lerpvar, scr_shakeobj, snd_play_pitch,
+} from '../common.js?v=20261114012116';
 import {
   EXIT, O, P, T, W,
-} from '../gml.js?v=20261113220951';
+} from '../gml.js?v=20261114012116';
 
 // obj_gerson_bell_attack_controller (default sprite None, depth 0)
 class GersonBellAttackController extends Instance {
@@ -1217,25 +1217,24 @@ class GersonGrowtangleTelegraphNew extends P('obj_regularbullet') {
     if (!T(instance_exists('obj_growtangle'))) {
         return;
     }
-    S.gpu_set_blendenable(false);
-    S.gpu_set_colorwriteenable(false, false, false, true);
-    draw_set_alpha(0);
-    S.ossafe_fill_rectangle(camerax(), cameray(), camerax() + 640, cameray() + 480, false);
-    draw_set_alpha(this.image_alpha);
+    let box;
     if (i_ex('obj_gerson_growtangle')) {
-        S.ossafe_fill_rectangle(O('obj_gerson_growtangle').x1 + 3, O('obj_gerson_growtangle').y1 + 3, O('obj_gerson_growtangle').x2 - 3, O('obj_gerson_growtangle').y2 - 3, false);
+        box = [O('obj_gerson_growtangle').x1 + 3, O('obj_gerson_growtangle').y1 + 3, O('obj_gerson_growtangle').x2 - 3, O('obj_gerson_growtangle').y2 - 3];
     } else if (O('obj_growtangle').image_xscale == 2) {
-        S.ossafe_fill_rectangle(gt_minx() + 5, gt_miny() + 5, gt_maxx() - 4, gt_maxy() - 4, false);
+        box = [gt_minx() + 5, gt_miny() + 5, gt_maxx() - 4, gt_maxy() - 4];
     } else {
-        S.ossafe_fill_rectangle(gt_minx() + 3, gt_miny() + 3, gt_maxx() - 3, gt_maxy() - 3, false);
+        box = [gt_minx() + 3, gt_miny() + 3, gt_maxx() - 3, gt_maxy() - 3];
     }
-    S.gpu_set_blendenable(true);
-    S.gpu_set_colorwriteenable(true, true, true, true);
-    gpu_set_blendmode_ext(7, 8);
-    S.gpu_set_alphatestenable(true);
-    S.gpu_set_alphatestref(1);
-    draw_self(this);
-    S.scr_draw_in_box_end();
+    const alpha = Math.min(1, this.image_alpha);
+    if (alpha > 0) {
+      const ctx = G.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(box[0], box[1], box[2] - box[0] + 1, box[3] - box[1] + 1);
+      ctx.clip();
+      draw_sprite_ext(this.sprite_index, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, this.image_blend, alpha);
+      ctx.restore();
+    }
     draw_set_alpha(1);
   }
   user5() {
@@ -2045,7 +2044,7 @@ class GersonDarknessOverlay extends Instance {
         _shadowpower_scale = lerp(0, - 1, O('obj_spearblocker').shadowpower / 1);
     }
     if (!T(surface_exists(this._surface))) {
-        this._surface = surface_create(this.room_width, this.room_height);
+        this._surface = surface_create(room_width, room_height);
     }
     surface_set_target(this._surface);
     draw_clear_alpha(16777215, 0);

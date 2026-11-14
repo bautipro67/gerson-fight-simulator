@@ -79,7 +79,8 @@ KEYWORDS = {'if', 'else', 'while', 'for', 'do', 'until', 'repeat', 'with', 'swit
             'undefined', 'noone', 'all', 'pi'}
 BUILTIN_VARS = {'room': 'G.roomName', 'current_time': 'G.current_time()', 'fps': '30', 'room_speed': '30',
                 'view_wport': 'VIEW_WPORT', 'view_hport': 'VIEW_HPORT', 'id': 'this', 'pi': 'Math.PI', 'noone': 'null',
-                'undefined': 'undefined', 'self': 'this', 'all': "'all'", 'c_white': '0xffffff', 'c_black': '0'}
+                'undefined': 'undefined', 'self': 'this', 'all': "'all'", 'c_white': '0xffffff', 'c_black': '0',
+                'room_width': 'room_width', 'room_height': 'room_height'}
 
 
 CHAIN = r"(?:this\.|global\.|other\.|S\.|O\('[^']+'\)\.)?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\[[^\[\]]*\])*(?:\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))?"

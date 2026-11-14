@@ -4,11 +4,11 @@
 import {
   global, G, Instance, defineObject, defineScript, S, instance_create, room_reset, objectExists,
   font_add_sprite_ext,
-} from '../runtime/gm.js?v=20261113220951';
-import { audio_stop_all, snd_init } from '../runtime/audio.js?v=20261113220951';
-import { WEAPONS, ARMORS, BASE_STATS, getLoadout } from './equipment.js?v=20261113220951';
-import { arr, arr2, view_x, view_y, splitCaller } from './common.js?v=20261113220951';
-import { registerBackground } from './misc.js?v=20261113220951';
+} from '../runtime/gm.js?v=20261114012116';
+import { audio_stop_all, snd_init } from '../runtime/audio.js?v=20261114012116';
+import { WEAPONS, ARMORS, BASE_STATS, getLoadout } from './equipment.js?v=20261114012116';
+import { arr, arr2, view_x, view_y, splitCaller } from './common.js?v=20261114012116';
+import { registerBackground } from './misc.js?v=20261114012116';
 
 function scr_gamestart() {
   global.chapter = 4;
@@ -507,6 +507,8 @@ export function startBattle(opts = {}) {
   // room_dw_church_arena: the view stays at x 520 through the fight (Susie stands at 629).
   G.camX = 520;
   G.camY = 0;
+  G.roomW = 1280;
+  G.roomH = 480;
   G.gersonArena = true;
   G.roomName = 'room_dw_church_arena';
   G.gersonResult = null;

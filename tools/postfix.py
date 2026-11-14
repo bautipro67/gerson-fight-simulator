@@ -69,4 +69,35 @@ if 'anon_gml_Object_obj_gerson_box_rumble_controller_Create_0_680' in t:
   }
 """)
 
+# obj_gerson_growtangle_telegraph_new Draw: GameMaker writes the box's inside into the alpha channel
+# (alpha-only colour writes, alpha image_alpha), then draws the telegraph with bm_dest_alpha /
+# bm_inv_dest_alpha so it only shows inside the box. A canvas has no alpha-only writes (the masks
+# were drawn as coloured rectangles over the whole box), so the box's inside becomes a clip and
+# image_alpha the telegraph's alpha.
+a = t.find("class GersonGrowtangleTelegraphNew")
+b = t.find("defineObject('obj_gerson_growtangle_telegraph_new'")
+if a >= 0 and b > a:
+    part = t[a:b]
+    head = ("    S.gpu_set_blendenable(false);\n    S.gpu_set_colorwriteenable(false, false, false, true);\n"
+            "    draw_set_alpha(0);\n    S.ossafe_fill_rectangle(camerax(), cameray(), camerax() + 640, cameray() + 480, false);\n"
+            "    draw_set_alpha(this.image_alpha);\n")
+    tail = ("    S.gpu_set_blendenable(true);\n    S.gpu_set_colorwriteenable(true, true, true, true);\n"
+            "    gpu_set_blendmode_ext(7, 8);\n    S.gpu_set_alphatestenable(true);\n    S.gpu_set_alphatestref(1);\n"
+            "    draw_self(this);\n    S.scr_draw_in_box_end();\n")
+    assert head in part and tail in part, 'telegraph_new draw changed'
+    part = part.replace(head, "    let box;\n")
+    part = re.sub(r"S\.ossafe_fill_rectangle\((.*), false\);", r"box = [\1];", part)
+    part = part.replace(tail, """    const alpha = Math.min(1, this.image_alpha);
+    if (alpha > 0) {
+      const ctx = G.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(box[0], box[1], box[2] - box[0] + 1, box[3] - box[1] + 1);
+      ctx.clip();
+      draw_sprite_ext(this.sprite_index, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, this.image_blend, alpha);
+      ctx.restore();
+    }
+""")
+    t = t[:a] + part + t[b:]
+
 open(p, 'w', encoding='utf-8', newline='').write(t)

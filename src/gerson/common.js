@@ -13,12 +13,13 @@ import {
   collision_rectangle, d3d_set_fog, draw_set_blend_mode, gpu_get_blendmode, sprite_get_width, sprite_get_height,
   sprite_get_xoffset, sprite_get_yoffset, draw_triangle_color, draw_circle, draw_get_alpha, merge_color, random, S,
   defineScript,
-} from '../runtime/gm.js?v=20261113220951';
-import { snd_play, snd_volume, snd_pitch } from '../runtime/audio.js?v=20261113220951';
+} from '../runtime/gm.js?v=20261114012116';
+import { snd_play, snd_volume, snd_pitch } from '../runtime/audio.js?v=20261114012116';
 
 export const VIEW_W = 640;
 export const VIEW_H = 480;
-export const room_width = 640;
+// room_dw_church_arena, where the fight takes place (the view sits at x 520 in it).
+export const room_width = 1280;
 export const room_height = 480;
 // __view_get(0, 0) / __view_get(1, 0)
 export const view_x = () => G.camX;

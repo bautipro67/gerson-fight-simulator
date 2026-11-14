@@ -3,10 +3,10 @@ import {
   global, Instance, defineObject, defineScript, S, instance_create, instance_destroy, instance_exists, instancesOf,
   instance_find, withObj, event_user, random, ceil, round, merge_color, point_direction, point_distance,
   angle_difference, button1_p, draw_self, draw_sprite_ext, d3d_set_fog, G, sprite_set_offset,
-} from '../runtime/gm.js?v=20261114041602';
-import { snd_play, snd_stop, snd_pitch } from '../runtime/audio.js?v=20261114041602';
-import { withInst, subst, knightEnemy } from './common.js?v=20261114041602';
-import { scr_shakeobj } from '../gerson/common.js?v=20261114041602';
+} from '../runtime/gm.js?v=20261114055615';
+import { snd_play, snd_stop, snd_pitch } from '../runtime/audio.js?v=20261114055615';
+import { withInst, subst, knightEnemy } from './common.js?v=20261114055615';
+import { scr_shakeobj } from '../gerson/common.js?v=20261114055615';
 
 const g = global;
 

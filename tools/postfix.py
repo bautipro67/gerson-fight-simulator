@@ -100,4 +100,19 @@ if a >= 0 and b > a:
 """)
     t = t[:a] + part + t[b:]
 
+# obj_afterimage_screen (Gerson batting back Rude Buster): application_surface is the game's canvas,
+# 640x480, holding what has been drawn of this frame so far.
+if "defineObject('obj_afterimage_screen'" in t:
+    t = t.replace('S.surface_get_width(this.application_surface)', 'applicationSurface().w')
+    t = t.replace('S.surface_get_height(this.application_surface)', 'applicationSurface().h')
+    t = t.replace('draw_surface(this.application_surface, 0, 0)', 'draw_surface(applicationSurface(), 0, 0)')
+    assert 'this.application_surface' not in t, 'obj_afterimage_screen changed'
+    t = t.replace('// obj_afterimage_screen (', """// application_surface: the game's canvas, with what has been drawn of this frame so far.
+const applicationSurface = () => {
+  const canvas = document.getElementById('game');
+  return { canvas, w: canvas.width, h: canvas.height, alive: true, isSurface: true };
+};
+
+// obj_afterimage_screen (""", 1)
+
 open(p, 'w', encoding='utf-8', newline='').write(t)

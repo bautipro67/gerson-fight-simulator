@@ -2,13 +2,13 @@
 /* eslint-disable */
 import {
   Instance, S, d3d_set_fog, defineObject, draw_self, draw_sprite_ext, draw_surface, draw_surface_ext, global, instance_create, instance_create_depth, instance_destroy, instance_exists, irandom, lengthdir_x, lengthdir_y, lerp, merge_color, place_meeting, point_direction, random, snd_play, snd_stop, surface_create, surface_exists, surface_free, surface_reset_target, surface_set_target,
-} from '../rt.js?v=20261114041602';
+} from '../rt.js?v=20261114055615';
 import {
   cameraheight, camerax, cameray, draw_sprite_ext_centerscale, i_ex, scr_afterimage, scr_approach, scr_get_box, snd_play_pitch,
-} from '../common.js?v=20261114041602';
+} from '../common.js?v=20261114055615';
 import {
   EXIT, O, P, T, W,
-} from '../gml.js?v=20261114041602';
+} from '../gml.js?v=20261114055615';
 
 // obj_gerson_green_switch (default sprite spr_gerson_swing, depth 0)
 class GersonGreenSwitch extends Instance {
@@ -946,6 +946,12 @@ class ShakeobjY extends Instance {
 }
 defineObject('obj_shakeobj_y', ShakeobjY);
 
+// application_surface: the game's canvas, with what has been drawn of this frame so far.
+const applicationSurface = () => {
+  const canvas = document.getElementById('game');
+  return { canvas, w: canvas.width, h: canvas.height, alive: true, isSurface: true };
+};
+
 // obj_afterimage_screen (default sprite None, depth 0)
 class AfterimageScreen extends Instance {
   cleanUp() {
@@ -970,10 +976,10 @@ class AfterimageScreen extends Instance {
         return;
     }
     if (!T(surface_exists(this.my_surface))) {
-        this.my_surface = surface_create(S.surface_get_width(this.application_surface), S.surface_get_height(this.application_surface));
+        this.my_surface = surface_create(applicationSurface().w, applicationSurface().h);
     }
     surface_set_target(this.my_surface);
-    draw_surface(this.application_surface, 0, 0);
+    draw_surface(applicationSurface(), 0, 0);
     surface_reset_target();
     draw_surface_ext(this.my_surface, this.x - this.anchor_x * this.xscale, this.y - this.anchor_y * this.yscale, this.xscale, this.yscale, 0, 0xffffff, this.alpha);
   }

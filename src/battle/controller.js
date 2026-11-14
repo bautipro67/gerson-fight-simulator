@@ -7,9 +7,9 @@ import {
   left_p, right_p, up_p, down_p, button1_p, button2_p, string_width, string_hash_to_newline,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_rectangle, draw_sprite,
   draw_sprite_ext, draw_text, draw_text_colour, draw_text_transformed, draw_line_width,
-} from '../runtime/gm.js?v=20261114012116';
-import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261114012116';
-import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261114012116';
+} from '../runtime/gm.js?v=20261114013728';
+import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261114013728';
+import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261114013728';
 
 const sin = Math.sin, cos = Math.cos;
 const g = global;
@@ -194,10 +194,15 @@ class BattleController extends Instance {
 
   step() {
     // The Hammer of Justice's end (obj_hammer_of_justice_enemy sets G.gersonResult): the screen has
-    // faded to white; the simulator's ending screen follows (the room's own scene is not ported).
+    // faded to white; the room's scene after the fight follows (src/gerson/scenes.js), or without
+    // SCENES the simulator's end screen.
     if (G.gersonResult) {
       this.endwait = (this.endwait || 0) + 1;
-      if (this.endwait == 40) S.startEnding(G.gersonResult);
+      if (this.endwait == 40) {
+        const scenes = G.settings?.scenes !== false && !instance_exists('obj_practicecontroller') && !instance_exists('obj_sandboxcontroller');
+        if (scenes) S.startGersonAfterScene(G.gersonResult);
+        else S.startEnding(G.gersonResult);
+      }
       return;
     }
     // (Chapter 4) While Susie's finishing move plays, the controller does nothing: no menu, no
@@ -1461,12 +1466,19 @@ class EncounterBasic extends Instance {
       g.heromakex[0] = 629;
       g.heromakey[0] = 149;
       this.battlestartdelay = 25;
-      this.c[0] = S.scr_dark_marker(623, 149, 'spr_susie_idle');
-      // Gerson laughs where he stands (obj_npc_gerson state 11) until his marker is replaced by the
-      // enemy (scr_battle moves it to monstermake over 20 frames; obj_doom removes it after 25 + 25).
-      this.gerson = S.scr_dark_marker(g.monstermakex[0], g.monstermakey[0], 'spr_gerson_laugh_scene');
-      this.gerson.image_speed = 0.2;
-      this.gerson.depth = 0;
+      // (where the scene left them; without it, as the first fight's scene does)
+      const st = G.encounterStart ?? {};
+      G.encounterStart = null;
+      const [sx, sy] = st.susie ?? [623, 149];
+      this.c[0] = S.scr_dark_marker(sx, sy, 'spr_susie_idle');
+      // Gerson's marker is what he looked like (laughing, obj_npc_gerson state 11, after the first
+      // scene) until the enemy replaces it: scr_battle moves it to monstermake over 20 frames, and
+      // obj_doom removes it after 25 + 25.
+      const gm = st.gerson ?? { x: g.monstermakex[0], y: g.monstermakey[0], sprite: 'spr_gerson_laugh_scene', index: 0, speed: 0.2, xscale: 2 };
+      this.gerson = S.scr_dark_marker(gm.x, gm.y, gm.sprite);
+      Object.assign(this.gerson, { image_index: gm.index ?? 0, image_speed: gm.speed ?? 0, image_xscale: gm.xscale ?? 2, depth: 0 });
+      this.gersonFrom = [gm.x, gm.y];
+      this.gersonTimer = 0;
     } else {
       const sx = g.introx || [g.heromakex[0] + 65, g.heromakex[1] + 65, g.heromakex[2] + 65];
       const sy = g.introy || g.heromakey;
@@ -1490,6 +1502,13 @@ class EncounterBasic extends Instance {
     this.counttimer = 0;
   }
   step() {
+    // scr_move_to_point_over_time(monstermake, 20) on Gerson's marker
+    if (this.gerson && this.gerson.alive && this.gersonTimer < 20) {
+      this.gersonTimer += 1;
+      const f = this.gersonFrom, k = this.gersonTimer / 20;
+      this.gerson.x = f[0] + (g.monstermakex[0] - f[0]) * k;
+      this.gerson.y = f[1] + (g.monstermakey[0] - f[1]) * k;
+    }
     if (this.fightcon == 1) {
       this.counttimer += 1;
       if (this.counttimer < 10) {

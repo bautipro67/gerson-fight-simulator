@@ -4,11 +4,11 @@
 import {
   global, G, Instance, defineObject, defineScript, S, instance_create, room_reset, objectExists,
   font_add_sprite_ext,
-} from '../runtime/gm.js?v=20261114012116';
-import { audio_stop_all, snd_init } from '../runtime/audio.js?v=20261114012116';
-import { WEAPONS, ARMORS, BASE_STATS, getLoadout } from './equipment.js?v=20261114012116';
-import { arr, arr2, view_x, view_y, splitCaller } from './common.js?v=20261114012116';
-import { registerBackground } from './misc.js?v=20261114012116';
+} from '../runtime/gm.js?v=20261114013728';
+import { audio_stop_all, snd_init } from '../runtime/audio.js?v=20261114013728';
+import { WEAPONS, ARMORS, BASE_STATS, getLoadout } from './equipment.js?v=20261114013728';
+import { arr, arr2, view_x, view_y, splitCaller } from './common.js?v=20261114013728';
+import { registerBackground } from './misc.js?v=20261114013728';
 
 function scr_gamestart() {
   global.chapter = 4;
@@ -522,7 +522,14 @@ export function startBattle(opts = {}) {
   if (opts.retry) global.flag[853] = 1;
   instance_create(0, 0, 'obj_time');
   if (G.settings?.simplify) global.flag[8] = 1;
-  if (objectExists('obj_dw_church_arena_bg')) instance_create(520, 0, 'obj_dw_church_arena_bg');
+  const bg = objectExists('obj_dw_church_arena_bg') ? instance_create(520, 0, 'obj_dw_church_arena_bg') : null;
+  // From the scene before it (src/gerson/scenes.js): the room stays behind the arena while it fades
+  // in, and the intro starts Susie and Gerson where the scene left them.
+  G.encounterStart = null;
+  if (opts.scene && objectExists('obj_sim_church_battleroom')) {
+    instance_create(0, 0, 'obj_sim_church_battleroom').setup(opts.scene, bg);
+    G.encounterStart = { susie: opts.scene.susie, gerson: opts.scene.gerson };
+  }
   if (opts.intro === false) {
     S.scr_encountersetup(global.encounterno);
     instance_create(0, 0, 'obj_battlecontroller');

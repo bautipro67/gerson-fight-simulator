@@ -1,14 +1,14 @@
-// The end screen, after the fight fades to white. It stands in for the arena's scene after the
-// battle (obj_dw_church_arena, not ported): on a win (Susie's finishing move and the haircut) the
-// first lines of the win scene over gerson_defeated.ogg; when Susie falls, the first lines of the
-// loss scene. Then the result and TRY AGAIN / TITLE.
+// The end screen. With SCENES on it comes after the arena's scene (src/gerson/scenes.js) and only shows
+// the result and TRY AGAIN / TITLE. With SCENES off it stands in for that scene: on a win (Susie's
+// finishing move and the haircut) the first lines of the win scene over gerson_defeated.ogg; when
+// Susie falls, the first lines of the loss scene. Then the result and the menu.
 import {
   G, global, Instance, defineObject, defineScript, S, instance_create, instance_exists, draw_sprite_ext,
   draw_set_color, draw_set_font, draw_set_alpha, draw_rectangle,
-} from '../runtime/gm.js?v=20261114012116';
-import { snd_init, mus_loop_ext, mus_volume, mus_stop } from '../runtime/audio.js?v=20261114012116';
-import { startBattle } from '../battle/setup.js?v=20261114012116';
-import { gotoRoom, scr_darkbox, fadeOut, centerText } from './common.js?v=20261114012116';
+} from '../runtime/gm.js?v=20261114013728';
+import { snd_init, mus_loop_ext, mus_volume, mus_stop } from '../runtime/audio.js?v=20261114013728';
+import { startBattle } from '../battle/setup.js?v=20261114013728';
+import { gotoRoom, scr_darkbox, fadeOut, centerText } from './common.js?v=20261114013728';
 
 const BS = String.fromCharCode(92);
 // Susie's lines carry her face (\F S), Gerson's switch to his voice with no face (\F0 \Tg).
@@ -69,6 +69,10 @@ class Ending extends Instance {
   step() {
     const d = LINES[this.kind];
     this.t += 1;
+    if (this.afterScene && this.con == 0) {
+      this.con = 1;
+      this.second = true;
+    }
     if (this.con == 0 && this.t == 1 && d.music && !this.music) {
       this.music = snd_init(d.music);
       mus_loop_ext(this.music, 1, 1);
@@ -91,7 +95,10 @@ class Ending extends Instance {
         if (this.music) mus_volume(this.music, 0, 20);
         fadeOut(20, () => {
           if (this.music) mus_stop(this.music);
-          if (i == 0) startBattle({ intro: G.settings?.intro !== false, retry: true });
+          if (i == 0) {
+            if (G.settings?.scenes !== false) S.startGersonRematch();
+            else startBattle({ intro: G.settings?.intro !== false, retry: true });
+          }
           else S.startTitle();
         });
       }, 'fnt_mainbig', 32);
@@ -125,5 +132,5 @@ defineScript('startEnding', (kind, opts = {}) => {
   global.fighting = 0;
   const e = instance_create(0, 0, 'obj_sim_ending');
   e.kind = kind === 'lose' ? 'lose' : 'win';
-  void opts;
+  e.afterScene = !!opts.afterScene;
 });

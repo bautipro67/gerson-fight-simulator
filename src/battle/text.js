@@ -5,11 +5,11 @@ import {
   instance_number, withObj, random, button1_p, button2_h, string_length, string_char_at,
   string_insert, string_delete, draw_set_font, draw_set_color, draw_get_color, draw_set_alpha, draw_text,
   draw_text_transformed, draw_text_color, draw_rectangle, draw_sprite_ext, draw_self, button3_h, instancesOf,
-} from '../runtime/gm.js?v=20261114012116';
-import { snd_play, snd_stop, snd_volume, snd_pitch } from '../runtime/audio.js?v=20261114012116';
+} from '../runtime/gm.js?v=20261114013728';
+import { snd_play, snd_stop, snd_volume, snd_pitch } from '../runtime/audio.js?v=20261114013728';
 
 const sin = Math.sin;
-import { fontName, splitCaller, view_x, view_y } from './common.js?v=20261114012116';
+import { fontName, splitCaller, view_x, view_y } from './common.js?v=20261114013728';
 
 // Text sounds that exist in this build; the others are silent.
 const TEXTSND = {
@@ -18,7 +18,7 @@ const TEXTSND = {
 };
 // Tenna's voice: one of nine takes at a random pitch (scr_textsound, Chapter 3).
 const TV_VOICES = ['snd_tv_voice_short', ...[2, 3, 4, 5, 6, 7, 8, 9].map(n => 'snd_tv_voice_short_' + n)];
-import { G } from '../runtime/gm.js?v=20261114012116';
+import { G } from '../runtime/gm.js?v=20261114013728';
 const tsnd = n => TEXTSND[n] ?? null;
 
 // scr_textsetup(font, color, x, y, charline, shake, rate, sound, hspace, vspace, special)
@@ -722,6 +722,7 @@ defineScript('scr_speaker', (name) => {
     global.typer = global.fighting == 1 ? 45 : 31;
   }
   if (name == 'tenna') global.typer = global.fighting == 1 ? 81 : 80;
+  if (name == 'gerson' || name == 'ger' || name == 'gers') global.typer = 85;
   if (name == 'undyne' || name == 'und') {
     global.typer = 17;
     global.fc = 9;
@@ -738,6 +739,7 @@ defineScript('scr_anyface', (speaker, no, emotion) => {
   if (sp == 'susie' || sp == 'sus') global.msg[no] = BS + 'TX ' + BS + 'F0 ' + BS + 'E' + e + ' ' + BS + 'FS ' + BS + 'TS %';
   if (sp == 'ralsei' || sp == 'ral') global.msg[no] = BS + 'TX ' + BS + 'F0 ' + BS + 'E' + e + ' ' + BS + 'FR ' + BS + 'TR %';
   if (sp == 'none' || sp == 'x' || sp == 'no name' || sp == 'no_name') global.msg[no] = BS + 'TX ' + BS + 'F0 ' + BS + 'T0 %';
+  if (sp == 'gerson') global.msg[no] = BS + 'TX ' + BS + 'F0 ' + BS + 'Tg %';
 });
 defineScript('scr_anyface_next', (speaker, emotion) => {
   global.msgno = (global.msgno ?? 0) + 1;

@@ -28,7 +28,8 @@ SOUND_PATTERNS = [
     r"|screenshake|scytheburst|select|spare|spearappear|swing|text|toilet|txtjok|txtral|txtsus|weirdeffect"
     r"|heal_c|spellcast|boost|item|great_shine|cancel|equip|won|levelup|dtrans_lw|wing|noise)$",
 ]
-MUSIC = ["ch4_extra_boss.ogg", "gerson_theme_intro.ogg", "gerson_defeated.ogg", "AUDIO_DEFEAT.ogg", "AUDIO_DRONE.ogg"]
+MUSIC = ["ch4_extra_boss.ogg", "gerson_theme_intro.ogg", "gerson_defeated.ogg", "AUDIO_DEFEAT.ogg", "AUDIO_DRONE.ogg",
+         "church_dark_study.ogg", "fanfare.ogg"]
 TEXT_KEY_PATTERNS = [r"gerson", r"hammer_of_justice", r"^obj_battlecontroller", r"^scr_", r"^obj_spell", r"^obj_heal", r"^obj_pacify",
                      r"^obj_gameover", r"^obj_writer", r"^DEVICE_"]
 

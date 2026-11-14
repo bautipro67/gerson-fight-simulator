@@ -9,7 +9,7 @@ Play the **Hammer of Justice** (Gerson Boom) fight, the secret boss of **DELTARU
 - Susie fights alone and your SOUL turns **green**: turn the shield to block Gerson's spears, bounce his shells and survive the hammer swings.
 - Every turn of the fight in order, with Gerson's story of the prophecy and the arena changing with each chapter he tells.
 - Rude Buster gets batted back, your items get stolen, OKHeal impresses him, and the last turn ends with Susie's haircut, as in the game.
-- **The scenes around the fight**: Susie finds the Magic Axe and Gerson asks for a haircut; after a loss, what they say changes with each try and Gerson offers a rematch; after the win, the JusticeAxe, the ShadowCrystal and the farewell. Turn them off with SCENES in OPTIONS.
+- **The scenes around the fight**: Susie finds the Magic Axe and Gerson asks for a haircut; after a loss, what they say changes with each try and Gerson offers a rematch you can take or put off; after the win, the JusticeAxe, the ShadowCrystal and the farewell. Turn them off with SCENES in OPTIONS.
 - The battle logic is ported from the original game, so it plays like the real fight.
 - **Practice mode** (Bad Time Simulator style): face the attacks in order; lose your HP bar and the attack restarts, survive it and you move on. Pick the starting attack and 90 / 45 / 1 HP. Scores with ranks and a saved best for full runs. Direct link: [`?practice`](https://bautipro67.github.io/gerson-fight-simulator/?practice).
 - **EQUIPMENT**: pick Susie's weapon and armors (Chapter 3 and 4 gear) and the items you bring.

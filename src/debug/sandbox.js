@@ -9,13 +9,13 @@ import {
   instancesOf, event_user, choose, keyboard_check, keyboard_check_pressed, random_set_seed, round, S,
   draw_set_font, draw_set_halign, draw_set_color, draw_set_alpha, draw_rectangle, draw_text, draw_sprite_ext,
   fa_left, fa_center, merge_color, button1_p, vk, draw_self,
-} from '../runtime/gm.js?v=20261116031545';
-import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261116031545';
-import { audioReady, assets } from '../runtime/assets.js?v=20261116031545';
-import { gotoRoom } from '../screens/common.js?v=20261116031545';
-import { getBest, saveBest } from '../settings.js?v=20261116031545';
-import { drawSoulHat } from '../hats.js?v=20261116031545';
-import { tagParent } from '../gerson/common.js?v=20261116031545';
+} from '../runtime/gm.js?v=20261116214353';
+import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261116214353';
+import { audioReady, assets } from '../runtime/assets.js?v=20261116214353';
+import { gotoRoom } from '../screens/common.js?v=20261116214353';
+import { getBest, saveBest } from '../settings.js?v=20261116214353';
+import { drawSoulHat } from '../hats.js?v=20261116214353';
+import { tagParent } from '../gerson/common.js?v=20261116214353';
 
 // Gerson's turns in fight order (obj_hammer_of_justice_enemy Other_10: trueturn -> pattern):
 // [attackpattern, trueturn, name, object the pattern needs]. The names are the simulator's.

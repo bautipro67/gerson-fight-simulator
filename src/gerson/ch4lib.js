@@ -5,9 +5,9 @@
 import {
   G, global, defineScript, draw_rectangle, draw_rectangle_color, draw_triangle, draw_line_width, draw_set_color, draw_set_alpha,
   draw_get_color, draw_get_alpha, point_direction, point_distance, lengthdir_x, lengthdir_y, instance_create_depth,
-  instance_destroy, instancesOf, gpu_set_blendmode, S, Instance, defineObject, instance_create, controls,
-} from './rt.js?v=20261116031545';
-import { scr_lerpvar, scr_script_delayed } from './common.js?v=20261116031545';
+  instance_destroy, instancesOf, gpu_set_blendmode, S, Instance, defineObject, instance_create, controls, collision_point,
+} from './rt.js?v=20261116214353';
+import { scr_lerpvar, scr_script_delayed } from './common.js?v=20261116214353';
 
 defineScript('ossafe_fill_rectangle', (x1, y1, x2, y2, outline = false) => {
   draw_rectangle(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), outline);
@@ -71,8 +71,10 @@ defineScript('scr_sonic_boom', (self, angle = 0, scale = 1) => {
   return s;
 });
 
-// position_meeting(x, y, obj): is (x, y) inside an instance of obj (its bounding box)?
-defineScript('position_meeting', (self, x, y, obj) => instancesOf(obj).some(i => x >= i.bbox_left && x <= i.bbox_right && y >= i.bbox_top && y <= i.bbox_bottom));
+// position_meeting(x, y, obj): is (x, y) inside an instance of obj, by its collision mask as GameMaker
+// checks it (rotated with the instance, or precise). The hammer bros' box throw keeps the SOUL in the box
+// this way while the box turns; by the bounding box alone, the SOUL could stay out past the turned corners.
+defineScript('position_meeting', (self, x, y, obj) => !!collision_point(x, y, obj, true));
 
 // scr_damage_all(bullet[, proportion]): hits every standing party member; with proportion < 1 the damage
 // scales with how much HP each has left.

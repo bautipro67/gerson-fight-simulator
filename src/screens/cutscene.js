@@ -11,14 +11,14 @@ import {
   clamp, left_h, right_h, up_h, down_h, button2_h, sprite_get_width, sprite_get_height, sprite_get_xoffset,
   sprite_get_yoffset, sprite_get_number, button1_p, withObj, draw_set_font, draw_text, string_width,
   string_hash_to_newline,
-} from '../runtime/gm.js?v=20261114055615';
+} from '../runtime/gm.js?v=20261116031545';
 import {
   snd_play, snd_pitch, snd_volume, snd_init, snd_loop, snd_stop, snd_free_all, mus_loop_ext, mus_volume, mus_stop,
   mus_pause, mus_resume,
-} from '../runtime/audio.js?v=20261114055615';
-import { assets } from '../runtime/assets.js?v=20261114055615';
-import { scr_darkbox } from './common.js?v=20261114055615';
-import { scr_lerpvar_instance, scr_shakeobj, scr_script_repeat } from '../gerson/common.js?v=20261114055615';
+} from '../runtime/audio.js?v=20261116031545';
+import { assets } from '../runtime/assets.js?v=20261116031545';
+import { scr_darkbox } from './common.js?v=20261116031545';
+import { scr_lerpvar_instance, scr_shakeobj, scr_script_repeat } from '../gerson/common.js?v=20261116031545';
 
 // ---------------------------------------------------------------- rooms
 
@@ -149,6 +149,9 @@ defineObject('obj_actor', Actor);
 class MoveActor extends Instance {
   create() { this.timer = 0; this.time = 0; this.target = null; }
   step() {
+    // (at most once a frame: a walk started by a delayed command, in the alarms, has already stepped)
+    if (this.steppedAt === G.frame) return;
+    this.steppedAt = G.frame;
     const t = this.target;
     if (!t || !t.alive) { instance_destroy(this); return; }
     this.timer += 1;
@@ -165,6 +168,9 @@ defineObject('obj_move_actor', MoveActor);
 class MoveToPoint extends Instance {
   create() { Object.assign(this, { target: null, moved: 0, movetimer: 0, movex: 0, movey: 0, movemax: 10 }); }
   step() {
+    // (at most once a frame: a walk started by a delayed command, in the alarms, has already stepped)
+    if (this.steppedAt === G.frame) return;
+    this.steppedAt = G.frame;
     const t = this.target;
     if (!t || !t.alive) { instance_destroy(this); return; }
     if (this.moved === 0) {
@@ -671,17 +677,22 @@ class CutsceneMaster extends Instance {
         d.c = { name: a2, args: [a3, a4, a5, a6 ?? 0, 0, 0], actor };
         break;
       }
+      // (GameMaker runs an instance made during the step event in that same step, so the movers count this
+      // frame too: c_walk(dir, sp, 15); c_wait(15); c_walk(...) then starts the second walk the frame the
+      // first one ends. Stepped a frame later, the first one would stop the second.)
       case 'walk': {
         const m = instance_create(0, 0, 'obj_move_actor');
         m.target = actor;
         m.time = a3;
         actor.speed = a2;
         actor.direction = { l: 180, d: 270, r: 0, u: 90 }[a1] ?? 0;
+        m.step();
         break;
       }
       case 'walkdirect': {
         const m = instance_create(0, 0, 'obj_move_to_point');
         Object.assign(m, { target: actor, movex: a1 === 0 ? actor.x : a1, movey: a2 === 0 ? actor.y : a2, movemax: a3 });
+        m.step();
         break;
       }
       case 'msgset': S.msgset(a1, a2); break;

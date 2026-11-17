@@ -4,9 +4,9 @@ import {
   withObj, event_user, choose, random, round, merge_color, button1_p, button2_p, button3_p,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_get_color, draw_rectangle,
   draw_sprite, draw_sprite_ext, draw_text_transformed,
-} from '../runtime/gm.js?v=20261116214353';
-import { withInst, gmlString, knightEnemy } from './common.js?v=20261116214353';
-import { snd_play, snd_pitch } from '../runtime/audio.js?v=20261116214353';
+} from '../runtime/gm.js?v=20261117034959';
+import { withInst, gmlString, knightEnemy } from './common.js?v=20261117034959';
+import { snd_play, snd_pitch } from '../runtime/audio.js?v=20261117034959';
 
 const g = global;
 

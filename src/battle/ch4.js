@@ -1,6 +1,6 @@
 // Chapter 4 battle scripts that Chapter 3 did not have: scr_heroblcon, scr_battle_sprite_set /
 // scr_battle_sprite_reset, draw_sprite_ext_flash, scr_spellget, scr_flag_get, scr_enemy_drawhurt_generic.
-import { global, defineScript, instancesOf, instance_create, draw_sprite_ext, d3d_set_fog, sprite_get_number, S } from '../runtime/gm.js?v=20261116214353';
+import { global, defineScript, instancesOf, instance_create, draw_sprite_ext, d3d_set_fog, sprite_get_number, S } from '../runtime/gm.js?v=20261117034959';
 
 const HERO = { 1: 'obj_herokris', kris: 'obj_herokris', kr: 'obj_herokris', 2: 'obj_herosusie', susie: 'obj_herosusie',
   su: 'obj_herosusie', 3: 'obj_heroralsei', ralsei: 'obj_heroralsei', ra: 'obj_heroralsei', 4: 'obj_heronoelle',

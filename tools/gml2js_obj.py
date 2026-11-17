@@ -389,7 +389,15 @@ class Translator:
                 else:
                     out.append(t)
             elif re.match(r'^[A-Za-z_]', t):
-                if prv == '.':
+                if prv == '.' and t == 'id' and nxt != '=' and out and out[-1] == '.':
+                    # inst.id: in GML an instance id stands for the instance (other.id.x, a == other.id).
+                    # Here instances are their own ids (the numeric .id is only the engine's counter), so the
+                    # member is dropped; obj_x.id is the first instance of obj_x.
+                    out.pop()
+                    m_ = re.match(r"^O\('(\w+)'\)$", out[-1]) if out else None
+                    if m_:
+                        out[-1] = "OI('%s')" % m_.group(1)
+                elif prv == '.':
                     out.append(t)
                 elif nxt == '(':
                     if t == 'event_user':

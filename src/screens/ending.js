@@ -5,10 +5,10 @@
 import {
   G, global, Instance, defineObject, defineScript, S, instance_create, instance_exists, draw_sprite_ext,
   draw_set_color, draw_set_font, draw_set_alpha, draw_rectangle,
-} from '../runtime/gm.js?v=20261116214353';
-import { snd_init, mus_loop_ext, mus_volume, mus_stop } from '../runtime/audio.js?v=20261116214353';
-import { startBattle } from '../battle/setup.js?v=20261116214353';
-import { gotoRoom, scr_darkbox, fadeOut, centerText } from './common.js?v=20261116214353';
+} from '../runtime/gm.js?v=20261117034959';
+import { snd_init, mus_loop_ext, mus_volume, mus_stop } from '../runtime/audio.js?v=20261117034959';
+import { startBattle } from '../battle/setup.js?v=20261117034959';
+import { gotoRoom, scr_darkbox, fadeOut, centerText } from './common.js?v=20261117034959';
 
 const BS = String.fromCharCode(92);
 // Susie's lines carry her face (\F S), Gerson's switch to his voice with no face (\F0 \Tg).

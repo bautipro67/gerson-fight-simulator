@@ -5,9 +5,9 @@ import {
   Instance, defineObject, instance_create, instance_destroy, instance_exists, instancesOf, merge_color, round,
   draw_sprite_ext, draw_self, draw_clear_alpha, surface_create, surface_set_target, surface_reset_target, surface_free,
   sprite_create_from_surface, sprite_exists, sprite_delete, getSprite, clamp,
-} from '../runtime/gm.js?v=20261116214353';
-import { first, scr_movetowards, heartRef } from './common.js?v=20261116214353';
-import { BulletParent } from './bullets.js?v=20261116214353';
+} from '../runtime/gm.js?v=20261117034959';
+import { first, scr_movetowards, heartRef } from './common.js?v=20261117034959';
+import { BulletParent } from './bullets.js?v=20261117034959';
 
 // Nine-slice borders of the stretchable box sprites (left, top, right, bottom).
 export function setupNineSlices() {

@@ -2,13 +2,13 @@
 /* eslint-disable */
 import {
   Instance, S, choose, clamp, d3d_set_fog, defineObject, draw_self, draw_sprite_ext, global, instance_create, instance_destroy, instancesOf, irandom, irandom_range, lengthdir_x, lengthdir_y, lerp, place_meeting, point_direction, point_distance, random, random_range, sign, snd_play, snd_stop, variable_instance_exists,
-} from '../rt.js?v=20261116214353';
+} from '../rt.js?v=20261117034959';
 import {
   cameray, gt, i_ex, scr_afterimagefast, scr_approach, scr_at_player, scr_bullet_init, scr_custom_afterimage_ext, scr_darksize, scr_fire_bullet, scr_get_box, scr_lerpvar, scr_script_delayed, scr_shakeobj, scr_shakescreen, scr_var, snd_play_pitch,
-} from '../common.js?v=20261116214353';
+} from '../common.js?v=20261117034959';
 import {
   EXIT, O, P, T, W,
-} from '../gml.js?v=20261116214353';
+} from '../gml.js?v=20261117034959';
 
 // obj_box_throw_controller (default sprite spr_gerson_laugh, depth 0)
 class BoxThrowController extends Instance {
@@ -203,7 +203,7 @@ class BoxThrowController extends Instance {
             snd_play('snd_boost');
             this.my_flash = scr_custom_afterimage_ext(this,  'obj_oflash', this.sprite_index, this.image_index, this.x, this.y - this.z, this.image_xscale, this.image_yscale);
             if (W(this.my_flash, function (other) {
-                this.target = other.id;
+                this.target = other;
                 this.image_index = other.image_index;
                 this.image_speed = 0;
                 this.depth = other.depth - 1;
@@ -322,7 +322,7 @@ class BoxThrowController extends Instance {
     }
     if (i_ex(this.my_flash)) {
         if (W(this.my_flash, function (other) {
-            this.target = other.id;
+            this.target = other;
             this.x = other.x;
             this.y = other.y - other.z;
         }, this) === EXIT) return;

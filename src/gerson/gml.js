@@ -2,8 +2,8 @@
 // W(target, fn, self) is GML's with(): fn runs with `this` = each instance and `other` = self;
 // returning EXIT ends the calling event, BREAK leaves the with loop.
 // O(name) reads the first instance of an object and writes every instance, like obj_x.var in GML.
-import { G, instancesOf, objectClass } from './rt.js?v=20261116214353';
-import { tagParent } from './common.js?v=20261116214353';
+import { G, instancesOf, objectClass } from './rt.js?v=20261117034959';
+import { tagParent } from './common.js?v=20261117034959';
 
 export const EXIT = Symbol('exit');
 export const BREAK = Symbol('break');
@@ -46,6 +46,9 @@ export function O(name) {
   }
   return p;
 }
+
+// OI(name): obj_x.id, the first instance of obj_x (noone when there is none).
+export const OI = name => instancesOf(name)[0] ?? null;
 
 // P(name): the parent class a translated child extends: the ported parent if there is one (so the
 // child inherits its events), else a name tag.

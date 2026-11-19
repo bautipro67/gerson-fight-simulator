@@ -4,9 +4,9 @@ import {
   withObj, event_user, choose, random, round, merge_color, button1_p, button2_p, button3_p,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_get_color, draw_rectangle,
   draw_sprite, draw_sprite_ext, draw_text_transformed,
-} from '../runtime/gm.js?v=20261119142826';
-import { withInst, gmlString, knightEnemy } from './common.js?v=20261119142826';
-import { snd_play, snd_pitch } from '../runtime/audio.js?v=20261119142826';
+} from '../runtime/gm.js?v=20261119162321';
+import { withInst, gmlString, knightEnemy } from './common.js?v=20261119162321';
+import { snd_play, snd_pitch } from '../runtime/audio.js?v=20261119162321';
 
 const g = global;
 
@@ -405,10 +405,12 @@ class DmgWriter extends Instance {
     this.killactive = 0;
     withObj('obj_dmgwriter', d => { if (d.type != 3) d.killtimer = 0; });
     this.specialmessage = 0;
+    this.mercytimer = 0;
     this.vstart = 0;
   }
   draw() {
     if (this.delaytimer < this.delay) withObj('obj_dmgwriter', d => { d.killtimer = 0; });
+    this.mercytimer += 1;
     this.delaytimer += 1;
     if (this.delaytimer == this.delay) {
       this.vspeed = -5 - random(2);

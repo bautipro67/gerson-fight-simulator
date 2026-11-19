@@ -10,18 +10,18 @@ import {
   G, global, Instance, defineObject, defineScript, S, instance_create, instance_create_depth, instance_destroy,
   instance_exists, instancesOf, draw_sprite_ext, random, irandom_range, point_distance, font_add_sprite_ext, bgr,
   clamp, lerp,
-} from '../runtime/gm.js?v=20261119135935';
-import { snd_init, mus_loop_ext, mus_play, snd_free_all } from '../runtime/audio.js?v=20261119135935';
-import { loadMusic } from '../runtime/assets.js?v=20261119135935';
+} from '../runtime/gm.js?v=20261119142826';
+import { snd_init, mus_loop_ext, mus_play, snd_free_all } from '../runtime/audio.js?v=20261119142826';
+import { loadMusic } from '../runtime/assets.js?v=20261119142826';
 import {
   scr_dark_marker, scr_marker, scr_lerpvar_instance, scr_var_delayed, snd_play_x, scr_darksize,
-} from './common.js?v=20261119135935';
+} from './common.js?v=20261119142826';
 import {
   c, c_waitcustom_end, scr_cutscene_make, scr_actor_setup, scr_depth, d_ex, scr_flip, loadRoom, enterRoom,
   scr_jump_to_point_sprite, registerText,
-} from '../screens/cutscene.js?v=20261119135935';
-import { startBattle } from '../battle/setup.js?v=20261119135935';
-import { gotoRoom, fadeOut } from '../screens/common.js?v=20261119135935';
+} from '../screens/cutscene.js?v=20261119142826';
+import { startBattle } from '../battle/setup.js?v=20261119142826';
+import { gotoRoom, fadeOut } from '../screens/common.js?v=20261119142826';
 
 const BS = String.fromCharCode(92);
 const ROOM = 'room_dw_church_arena', ROOM_W = 1280, ROOM_H = 480;

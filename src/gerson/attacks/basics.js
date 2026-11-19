@@ -2,13 +2,13 @@
 /* eslint-disable */
 import {
   Instance, S, d3d_set_fog, defineObject, draw_self, draw_sprite_ext, draw_surface, draw_surface_ext, global, instance_create, instance_create_depth, instance_destroy, instance_exists, irandom, lengthdir_x, lengthdir_y, lerp, merge_color, place_meeting, point_direction, random, snd_play, snd_stop, surface_create, surface_exists, surface_free, surface_reset_target, surface_set_target,
-} from '../rt.js?v=20261119135935';
+} from '../rt.js?v=20261119142826';
 import {
   cameraheight, camerax, cameray, draw_sprite_ext_centerscale, i_ex, scr_afterimage, scr_approach, scr_get_box, snd_play_pitch,
-} from '../common.js?v=20261119135935';
+} from '../common.js?v=20261119142826';
 import {
   EXIT, O, P, T, W,
-} from '../gml.js?v=20261119135935';
+} from '../gml.js?v=20261119142826';
 
 // obj_gerson_green_switch (default sprite spr_gerson_swing, depth 0)
 class GersonGreenSwitch extends Instance {

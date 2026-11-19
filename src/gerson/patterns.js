@@ -4,8 +4,8 @@
 //   python -I tools/gml2js.py research/code/gml_Object_obj_hammer_of_justice_enemy_Other_10.gml \
 //     --self scr_spearpattern --funcs choose,irandom,clamp,string=String,scr_debug_print=debugPrint
 /* eslint-disable */
-import { global, choose, irandom, clamp } from './rt.js?v=20261117034959';
-import { scr_spearpattern } from './spears.js?v=20261117034959';
+import { global, choose, irandom, clamp } from './rt.js?v=20261119135935';
+import { scr_spearpattern } from './spears.js?v=20261119135935';
 
 const debugPrint = () => {};
 

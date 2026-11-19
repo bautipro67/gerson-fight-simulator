@@ -2,9 +2,9 @@
 import {
   global, Instance, defineObject, S, instance_create, instance_exists, instancesOf, withObj, random, round, ceil,
   merge_color, draw_sprite_ext, d3d_set_fog, sprite_get_number,
-} from '../runtime/gm.js?v=20261117034959';
-import { snd_play, snd_stop, snd_pitch } from '../runtime/audio.js?v=20261117034959';
-import { withInst, knightEnemy } from './common.js?v=20261117034959';
+} from '../runtime/gm.js?v=20261119135935';
+import { snd_play, snd_stop, snd_pitch } from '../runtime/audio.js?v=20261119135935';
+import { withInst, knightEnemy } from './common.js?v=20261119135935';
 
 const g = global;
 
@@ -268,6 +268,17 @@ export class HeroParent extends Instance {
     this.knightblock = knightblock;
     if (this.cancelattack != 0) return;
     const t = g.chartarget[me];
+    // AbsorbAx (weapon 54): Susie heals a tenth of her max HP with each FIGHT; against the Hammer of
+    // Justice only 2 HP, on the first party slot (Chapter 4 obj_heroparent Step).
+    if (this.object_index == 'obj_herosusie' && [1, 2, 3].some(c => g.charweapon[c] == 54)) {
+      this.star = 1;
+      let healamt = ceil(g.maxhp[2] * 0.1);
+      if (instance_exists('obj_hammer_of_justice_enemy')) {
+        healamt = 2;
+        this.star = 0;
+      }
+      S.scr_healitemspell(this, healamt);
+    }
     let damage = round(g.battleat[me] * this.points / 20 - g.monsterdf[t] * 3);
     if (knight) {
       damage = ceil(damage * knight.damagereduction);

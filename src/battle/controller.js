@@ -7,9 +7,9 @@ import {
   left_p, right_p, up_p, down_p, button1_p, button2_p, string_width, string_hash_to_newline,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_rectangle, draw_sprite,
   draw_sprite_ext, draw_text, draw_text_colour, draw_text_transformed, draw_line_width,
-} from '../runtime/gm.js?v=20261117034959';
-import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261117034959';
-import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261117034959';
+} from '../runtime/gm.js?v=20261119135935';
+import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261119135935';
+import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261119135935';
 
 const sin = Math.sin, cos = Math.cos;
 const g = global;
@@ -53,6 +53,9 @@ class BattleController extends Instance {
     this.attackpriority = -1;
     this.hidemercy = 0;
     this.cantspare = [0, 0, 0];
+    // (Chapter 4: against the Hammer of Justice, encounters 160/176, and in 186 MERCY reads ???)
+    this.questionmercy = [0, 0, 0];
+    if (g.encounterno == 160 || g.encounterno == 176 || g.encounterno == 186) this.questionmercy[0] = 1;
     g.darkzone = 1;
     g.fighting = 1;
     if (g.flag[62] == 0) {
@@ -480,9 +483,13 @@ class BattleController extends Instance {
       S.scr_iteminfo(this, item);
       if (this.itemtarget == 0 || this.itemtarget == 2) {
         let tensionhealed = 0;
-        if (item == 27) { S.scr_tensionheal(80); tensionhealed = 1; }
-        if (item == 28) { S.scr_tensionheal(ceil(g.maxtension / 2)); tensionhealed = 1; }
-        if (item == 29) { S.scr_tensionheal(ceil(g.maxtension)); tensionhealed = 1; }
+        // (Chapter 4: against the Hammer of Justice the TP items are not used at once; they go to the
+        // turn, where he steals them)
+        if (!instance_exists('obj_hammer_of_justice_enemy')) {
+          if (item == 27) { S.scr_tensionheal(80); tensionhealed = 1; }
+          if (item == 28) { S.scr_tensionheal(ceil(g.maxtension / 2)); tensionhealed = 1; }
+          if (item == 29) { S.scr_tensionheal(ceil(g.maxtension)); tensionhealed = 1; }
+        }
         if (tensionhealed) {
           const dn = snd_play('snd_cardrive');
           snd_pitch(dn, 1.4);
@@ -778,14 +785,19 @@ class BattleController extends Instance {
         draw_set_color(merge_color(0xffa040, 0xff0000, 0.5));
         draw_rectangle(xx + 520, yy + 380 + i * 30, xx + 600, yy + 380 + i * 30 + 15, false);
         draw_set_color(0xffff00);
-        if (mercyamt > 0 && this.cantspare[i] == 0) draw_rectangle(xx + 520, yy + 380 + i * 30, xx + 520 + mercypercent * 0.8, yy + 380 + i * 30 + 15, false);
+        const qm = this.questionmercy[i] == 1;
+        if (mercyamt > 0 && this.cantspare[i] == 0 && !qm) draw_rectangle(xx + 520, yy + 380 + i * 30, xx + 520 + mercypercent * 0.8, yy + 380 + i * 30 + 15, false);
         draw_set_color(0xffffff);
         draw_text_transformed(xx + 524, yy + 364, 'MERCY', 1, 0.5, 0);
         draw_set_color(0x800000);
-        if (this.cantspare[i] == 0) draw_text_transformed(xx + 524, yy + 380 + i * 30, gmlString(mercypercent) + '%', 1, 0.5, 0);
+        if (this.cantspare[i] == 0 && !qm) draw_text_transformed(xx + 524, yy + 380 + i * 30, gmlString(mercypercent) + '%', 1, 0.5, 0);
         if (this.cantspare[i] == 1) {
           lineColor(xx + 520 - 1, yy + 380 + i * 30, xx + 600, yy + 380 + i * 30 + 15, 2, 0x800000);
           lineColor(xx + 520 - 1, yy + 380 + i * 30 + 15, xx + 600, yy + 380 + i * 30, 2, 0x800000);
+        }
+        if (qm) {
+          draw_set_color(0xffffff);
+          draw_text_transformed(xx + 524, yy + 364 + 15, '???', 1, 0.5, 0);
         }
       }
     }
@@ -1110,7 +1122,9 @@ defineScript('scr_prevhero', (ctrl) => {
 
 defineScript('scr_endturn', (ctrl) => {
   ctrl = ctrlOf(ctrl);
-  for (let i = 0; i < 12; i++) g.item[i] = ctrl.tempitem[i][g.charturn] ?? 0;
+  // (Chapter 4: the Hammer of Justice steals the items used, but they are not used up: the menu's
+  // copy is not written back to the inventory)
+  if (!instance_exists('obj_hammer_of_justice_enemy')) for (let i = 0; i < 12; i++) g.item[i] = ctrl.tempitem[i][g.charturn] ?? 0;
   for (let i = 0; i < 12; i++) for (let j = 0; j < 3; j++) ctrl.tempitem[i][j] = g.item[i];
   withObj('obj_writer', w => instance_destroy(w));
   withObj('obj_face', f => instance_destroy(f));

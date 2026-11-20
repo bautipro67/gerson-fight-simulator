@@ -1,14 +1,14 @@
 // Imports every Hammer of Justice module so their objects and scripts get registered.
-import './common.js?v=20261120125011';
-import './bullets.js?v=20261120125011';
-import './board.js?v=20261120125011';
-import './soul.js?v=20261120125011';
-import './dbullet.js?v=20261120125011';
-import './gml.js?v=20261120125011';
-import './ch4lib.js?v=20261120125011';
-import './spears.js?v=20261120125011';
-import './enemy.js?v=20261120125011';
-import './arena.js?v=20261120125011';
+import './common.js?v=20261120132809';
+import './bullets.js?v=20261120132809';
+import './board.js?v=20261120132809';
+import './soul.js?v=20261120132809';
+import './dbullet.js?v=20261120132809';
+import './gml.js?v=20261120132809';
+import './ch4lib.js?v=20261120132809';
+import './spears.js?v=20261120132809';
+import './enemy.js?v=20261120132809';
+import './arena.js?v=20261120132809';
 
 // Attack modules: a missing or broken one only disables what it holds.
 const ATTACK_MODULES = ['basics', 'teleport', 'boxes', 'extra'];
@@ -16,4 +16,4 @@ await Promise.all(ATTACK_MODULES.map(m => import('./attacks/' + m + '.js' + new 
   console.warn('gerson attack module failed:', m, e);
 })));
 // The scenes before and after the fight (obj_dw_church_arena); they use objects from the attack modules.
-await import('./scenes.js?v=20261120125011').catch(e => console.warn('gerson scenes failed:', e));
+await import('./scenes.js?v=20261120132809').catch(e => console.warn('gerson scenes failed:', e));

@@ -9,13 +9,13 @@ import {
   instancesOf, event_user, choose, keyboard_check, keyboard_check_pressed, random_set_seed, round, S,
   draw_set_font, draw_set_halign, draw_set_color, draw_set_alpha, draw_rectangle, draw_text, draw_sprite_ext,
   fa_left, fa_center, merge_color, button1_p, vk, draw_self,
-} from '../runtime/gm.js?v=20261120125011';
-import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261120125011';
-import { audioReady, assets } from '../runtime/assets.js?v=20261120125011';
-import { gotoRoom } from '../screens/common.js?v=20261120125011';
-import { getBest, saveBest } from '../settings.js?v=20261120125011';
-import { drawSoulHat } from '../hats.js?v=20261120125011';
-import { tagParent } from '../gerson/common.js?v=20261120125011';
+} from '../runtime/gm.js?v=20261120132809';
+import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261120132809';
+import { audioReady, assets } from '../runtime/assets.js?v=20261120132809';
+import { gotoRoom } from '../screens/common.js?v=20261120132809';
+import { getBest, saveBest } from '../settings.js?v=20261120132809';
+import { drawSoulHat } from '../hats.js?v=20261120132809';
+import { tagParent } from '../gerson/common.js?v=20261120132809';
 
 // Gerson's turns in fight order (obj_hammer_of_justice_enemy Other_10: trueturn -> pattern):
 // [attackpattern, trueturn, name, object the pattern needs]. The names are the simulator's.
@@ -318,6 +318,10 @@ class SandboxController extends tagParent('obj_battlecontroller') {
       const diag = trueturn > 3 ? 1 : 0;
       Object.assign(e, { talked: 1, attacked: 0, rtimer: 0, attackcon: 0, state: 0, visible: true, image_alpha: 1,
         endcon: 0, end_cutscene_version: 0, postenemyturnevent: 6, diagonal_enabled: diag, transformsfx: diag, goldcon: 0 });
+      // What the fight resets when his turn starts (startTalk): practice skips the talk, so without
+      // this "Gerson everywhere" left squishbox on and every later attack kept the SOUL in a 54 px band.
+      Object.assign(e, { squishbox: false, swingdown_multitelegraph: 0, ballooncon: 0, balloonsubcon: 0, balloonend: 1, talkedcon: 0, gothitlastturn: 0 });
+      global.sp = 4;
       e.sprite_index = 'spr_gerson_idle';
       e.x = e.xstart;
       e.y = e.ystart;
@@ -376,7 +380,9 @@ class SandboxController extends tagParent('obj_battlecontroller') {
     // Attacks cut short leave their helpers behind.
     for (const o of instancesOf(['obj_lerpvar', 'obj_script_delayed', 'obj_dbulletcontroller'])) instance_destroy(o);
     for (const g of instancesOf('obj_growtangle')) instance_destroy(g);
-    global.invc = 1;
+    // The Hammer of Justice sets invc to 0.5 for the whole fight (his Create); 1 (the Knight sim's
+    // reset) doubled the SOUL's invincibility after a hit from the second practice attack on.
+    global.invc = 0.5;
     this.phase = 'wait';
     this.wait = 20;
   }

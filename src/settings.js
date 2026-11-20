@@ -1,6 +1,6 @@
 // Player options and control bindings, remembered in this browser when storage is available.
-import { G, controls, setControls } from './runtime/gm.js?v=20261120125011';
-import { setMasterVolume } from './runtime/audio.js?v=20261120125011';
+import { G, controls, setControls } from './runtime/gm.js?v=20261120132809';
+import { setMasterVolume } from './runtime/audio.js?v=20261120132809';
 
 const SETTINGS_KEY = 'gerson-sim-settings';
 const CONTROLS_KEY = 'gerson-sim-controls';

@@ -9,13 +9,13 @@ import {
   instancesOf, event_user, choose, keyboard_check, keyboard_check_pressed, random_set_seed, round, S,
   draw_set_font, draw_set_halign, draw_set_color, draw_set_alpha, draw_rectangle, draw_text, draw_sprite_ext,
   fa_left, fa_center, merge_color, button1_p, vk, draw_self,
-} from '../runtime/gm.js?v=20261119162321';
-import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261119162321';
-import { audioReady, assets } from '../runtime/assets.js?v=20261119162321';
-import { gotoRoom } from '../screens/common.js?v=20261119162321';
-import { getBest, saveBest } from '../settings.js?v=20261119162321';
-import { drawSoulHat } from '../hats.js?v=20261119162321';
-import { tagParent } from '../gerson/common.js?v=20261119162321';
+} from '../runtime/gm.js?v=20261120034301';
+import { snd_play, snd_init, mus_loop_ext, mus_stop, snd_stop } from '../runtime/audio.js?v=20261120034301';
+import { audioReady, assets } from '../runtime/assets.js?v=20261120034301';
+import { gotoRoom } from '../screens/common.js?v=20261120034301';
+import { getBest, saveBest } from '../settings.js?v=20261120034301';
+import { drawSoulHat } from '../hats.js?v=20261120034301';
+import { tagParent } from '../gerson/common.js?v=20261120034301';
 
 // Gerson's turns in fight order (obj_hammer_of_justice_enemy Other_10: trueturn -> pattern):
 // [attackpattern, trueturn, name, object the pattern needs]. The names are the simulator's.
@@ -435,13 +435,20 @@ defineObject('obj_sandboxcontroller', SandboxController);
 export const PRACTICE_COUNT = Math.max(1, ATTACKS.filter(a => FIGHT_ORDER.indexOf(a) < UNUSED_FROM).length);
 export const PRACTICE_HP = [90, 45, 1];
 const HP_MULTIPLIER = { 90: 1, 45: 1.5, 1: 2 };
+// The HP bar of each difficulty. The Roaring Knight's hits (softened by the ShadowMantle in his fight)
+// are the yardstick for 90 / 45: a boss whose hits take more HP gets a longer bar in the same proportion,
+// so every boss allows about the same number of hits. Best scores and the score multiplier stay with the
+// difficulty (PRACTICE_HP); 1 is still a no-hit run.
+// Measured with the SOUL left alone through every practice attack: Gerson's hits take 73 HP, the Knight's 60 (x 73/60).
+export const PRACTICE_POOL = { 90: 110, 45: 55, 1: 1 };
 const CLEAR_POINTS = 1000, PERFECT_POINTS = 500, RETRY_PENALTY = 300, GRAZE_POINTS = 4;
 
 class PracticeController extends SandboxController {
   create() {
     super.create();
-    this.poolMax = 90;
-    this.pool = 90;
+    this.tier = 90;
+    this.poolMax = PRACTICE_POOL[90];
+    this.pool = this.poolMax;
     this.retries = 0;
     this.failed = false;
     this.finished = false;
@@ -457,7 +464,7 @@ class PracticeController extends SandboxController {
     this.newBest = false;
     this.best = 0;
   }
-  get mult() { return HP_MULTIPLIER[this.poolMax] ?? 1; }
+  get mult() { return HP_MULTIPLIER[this.tier] ?? 1; }
   begin() {
     this.pool = this.poolMax;
     this.failed = false;
@@ -528,7 +535,7 @@ class PracticeController extends SandboxController {
     if (this.attackIndex + 1 >= PRACTICE_COUNT) {
       this.finished = true;
       this.phase = 'done';
-      if (this.fullRun) this.newBest = saveBest(this.poolMax, this.score);
+      if (this.fullRun) this.newBest = saveBest(this.tier, this.score);
       this.best = Math.max(this.best, this.fullRun ? this.score : 0);
       snd_play('snd_won');
       return;
@@ -615,7 +622,8 @@ export function startPractice({ start = 0, hp = 90 } = {}) {
   ensureMusic('ch4_extra_boss.ogg');
   const first = Math.max(0, Math.min(PRACTICE_COUNT - 1, start));
   const ctl = setupArena('obj_practicecontroller', first);
-  ctl.poolMax = ctl.pool = hp;
+  ctl.tier = hp;
+  ctl.poolMax = ctl.pool = PRACTICE_POOL[hp] ?? hp;
   ctl.fullRun = first === 0 && HP_MULTIPLIER[hp] !== undefined;
   ctl.best = getBest(hp);
   ctl.toggleMusic();

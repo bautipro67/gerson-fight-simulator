@@ -3,9 +3,9 @@
 import {
   G, global, Instance, defineObject, defineScript, instance_create, instance_destroy, instancesOf, place_meeting, point_distance, draw_self, draw_sprite_ext, event_user, S, snd_play, snd_stop, lerp,
   left_h, right_h, up_h, down_h, button2_h,
-} from './rt.js?v=20261119162321';
-import { first, view_x, view_y, move_towards_point } from './common.js?v=20261119162321';
-import { drawSoulHat } from '../hats.js?v=20261119162321';
+} from './rt.js?v=20261120034301';
+import { first, view_x, view_y, move_towards_point } from './common.js?v=20261120034301';
+import { drawSoulHat } from '../hats.js?v=20261120034301';
 
 const SOLID = 'obj_battlesolid';
 
@@ -173,11 +173,12 @@ export class Grazebox extends Instance {
       this.y = h.y + 10;
     }
   }
+  // (Chapter 4: the middle of the SOUL's sprite as drawn; the Create still uses + 10)
   endStep() {
     const h = first('obj_heart');
     if (h) {
-      this.x = h.x + 10;
-      this.y = h.y + 10;
+      this.x = h.x + h.sprite_width / 2;
+      this.y = h.y + h.sprite_height / 2;
     } else instance_destroy(this);
   }
   draw() {

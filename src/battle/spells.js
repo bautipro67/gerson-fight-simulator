@@ -3,10 +3,10 @@ import {
   global, Instance, defineObject, defineScript, S, instance_create, instance_destroy, instance_exists, instancesOf,
   instance_find, withObj, event_user, random, ceil, round, merge_color, point_direction, point_distance,
   angle_difference, button1_p, draw_self, draw_sprite_ext, d3d_set_fog, G, sprite_set_offset,
-} from '../runtime/gm.js?v=20261119162321';
-import { snd_play, snd_stop, snd_pitch, snd_volume } from '../runtime/audio.js?v=20261119162321';
-import { withInst, subst, knightEnemy } from './common.js?v=20261119162321';
-import { scr_shakeobj } from '../gerson/common.js?v=20261119162321';
+} from '../runtime/gm.js?v=20261120034301';
+import { snd_play, snd_stop, snd_pitch, snd_volume } from '../runtime/audio.js?v=20261120034301';
+import { withInst, subst, knightEnemy } from './common.js?v=20261120034301';
+import { scr_shakeobj } from '../gerson/common.js?v=20261120034301';
 
 const g = global;
 
@@ -445,10 +445,12 @@ class RudeBusterBolt extends Instance {
     this.bolt_timer = 0;
     this.chosen_bolt = 0;
     this.final_bolt = 0;
+    this.lockdamage = false;
     this.red = 0;
     // (Chapter 4) against the Hammer of Justice the bolt starts lower and, when he is going to bat
     // it back, slower.
     this.speedmax = 24;
+    this.hurtflashalpha = 0;
     this.gersonswingtimer = 0;
     this.gersonoffset = 0;
     const gerson = instancesOf('obj_hammer_of_justice_enemy')[0];
@@ -475,10 +477,9 @@ class RudeBusterBolt extends Instance {
       this.direction = point_direction(this.x, this.y, this.cx, this.cy) - 20 + this.gersonoffset;
       this.speed = this.speedmax;
       this.friction = -1.5;
-      if (gerson && gerson.rudebusterhitcount == gerson.rudebusterhitcountmax && this.target) {
-        this.friction = -5;
-        this.cy = this.target.y - 60 + this.target.sprite_height / 2;
-      }
+      // (the game also moves its targety 60 px up here, after cy was already taken from it, so the
+      // bolt still homes in on the middle of his sprite)
+      if (gerson && gerson.rudebusterhitcount == gerson.rudebusterhitcountmax && this.target) this.friction = -5;
       this.image_angle = this.direction;
       if (this.red == 1) {
         this.sprite_index = 'spr_rudebuster_beam_red';
@@ -509,7 +510,10 @@ class RudeBusterBolt extends Instance {
     }
     if (this.t >= 1 && this.explode == 0) {
       this.bolt_timer += 1;
-      if (button1_p() && this.bolt_timer >= 4 && this.chosen_bolt == 0) this.chosen_bolt = this.bolt_timer;
+      if (button1_p() && this.bolt_timer >= 4 && this.chosen_bolt == 0 && !this.lockdamage) {
+        this.chosen_bolt = this.bolt_timer;
+        this.lockdamage = true;
+      }
       const dir = point_direction(this.x, this.y, this.cx, this.cy);
       this.direction = this.direction + angle_difference(dir, this.direction) / 4;
       if (gerson) {
@@ -531,7 +535,7 @@ class RudeBusterBolt extends Instance {
         g.spelldelay += 33;
         if (gerson.rudebusterhitcount == gerson.rudebusterhitcountmax && gerson.rudebusterhitcountmax < 3) gerson.rudebusterhitcountmax += 1;
       }
-      if (gerson && this.x > G.camX + 640) instance_destroy(this);
+      if (this.x > G.camX + 640) instance_destroy(this);
       if (!gerson && point_distance(this.x, this.y, this.cx, this.cy) <= 40) {
         this.final_bolt = this.bolt_timer;
         this.visible = false;
@@ -541,22 +545,28 @@ class RudeBusterBolt extends Instance {
     }
     if (this.explode == 1) {
       if (this.t == 1) {
+        // A press of Z within two frames of the hit also sends the burst out faster (bonus_anim).
+        let bonus_anim = 0;
         if (this.chosen_bolt > 0) {
           const d = this.final_bolt - this.chosen_bolt;
           const bonus = { 0: 30, 1: 28, 2: 22, 3: 20, 4: 13, 5: 11, 6: 10 }[d];
           if (bonus) this.damage += bonus;
-          if (Math.abs(this.chosen_bolt - this.final_bolt) <= 2) snd_play('snd_scytheburst');
+          if (Math.abs(this.chosen_bolt - this.final_bolt) <= 2) {
+            bonus_anim = 1;
+            snd_play('snd_scytheburst');
+          }
         }
         if (this.red == 1) this.damage += 90;
         g.hittarget[this.star] = 0;
         if (knightEnemy()) this.damage = round(this.damage / 2);
         S.scr_damage_enemy(this, this.star, this.damage);
-        if (g.monstertype[0] != 20) {
+        if (g.monstertype[0] != 20 && !gerson) {
           withInst(this.target, tg => {
             const of = S.scr_oflash(tg);
             if (this.red == 1) of.flashcolor = 0xff0000;
           });
         }
+        snd_stop('snd_rudebuster_hit');
         snd_play('snd_rudebuster_hit');
         for (let i = 0; i < 8; i++) {
           const b = S.scr_afterimage(this);
@@ -565,7 +575,7 @@ class RudeBusterBolt extends Instance {
           b.y = this.cy;
           b.image_angle = 45 + i * 90;
           b.direction = b.image_angle;
-          b.speed = 25;
+          b.speed = bonus_anim == 1 ? 40 : 25;
           b.depth = this.depth - 10;
           this.burst[i] = b;
         }
@@ -580,13 +590,16 @@ class RudeBusterBolt extends Instance {
       }
       if (this.t >= 18) instance_destroy(this);
     }
-    if (this.explode == 0) {
+    // (Chapter 4: no trail while the bolt is stopped; a bolt that flies past him fades its trail
+    // twice as fast)
+    if (this.explode == 0 && this.speed != 0) {
       const a = S.scr_afterimage(this);
       a.image_yscale = 1.8;
       a.image_angle = this.image_angle;
       a.image_index = 4;
       a.image_speed = 0.5;
       a.image_alpha = this.image_alpha - 0.2;
+      if (gerson && gerson.rudebusterhitcount == gerson.rudebusterhitcountmax) a.fadeSpeed = 0.08;
       this.aft[this.maxaft] = a;
       this.maxaft += 1;
     }
@@ -606,7 +619,16 @@ class RudeBusterBolt extends Instance {
     this.a += 1;
     this.t += 1;
   }
-  draw() { draw_self(this); }
+  // (Chapter 4) it flashes white where Gerson's hammer stops it.
+  draw() {
+    draw_self(this);
+    if (this.hurtflashalpha > 0) {
+      d3d_set_fog(true, 0xffffff, 0, 1);
+      draw_sprite_ext(this.sprite_index, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, 0xffffff, this.hurtflashalpha);
+      d3d_set_fog(false, 0, 0, 0);
+      this.hurtflashalpha -= 0.1;
+    }
+  }
 }
 defineObject('obj_rudebuster_bolt', RudeBusterBolt);
 

@@ -7,9 +7,9 @@ import {
   left_p, right_p, up_p, down_p, button1_p, button2_p, string_width, string_hash_to_newline,
   draw_set_color, draw_set_alpha, draw_set_font, draw_set_halign, draw_rectangle, draw_sprite,
   draw_sprite_ext, draw_text, draw_text_colour, draw_text_transformed, draw_line_width,
-} from '../runtime/gm.js?v=20261119162321';
-import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261119162321';
-import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261119162321';
+} from '../runtime/gm.js?v=20261120034301';
+import { snd_play, snd_volume, snd_pitch, mus_loop_ext } from '../runtime/audio.js?v=20261120034301';
+import { arr, arr2, view_x, view_y, withInst, exists, gmlString, subst, knightEnemy } from './common.js?v=20261120034301';
 
 const sin = Math.sin, cos = Math.cos;
 const g = global;
@@ -718,7 +718,7 @@ class BattleController extends Instance {
           draw_rectangle(xx + 400, yy + 380 + i * 30, xx + 500, yy + 380 + i * 30 + 15, false);
           draw_set_color(0x00ff00);
           let hp = g.hp[g.char[i]] / g.maxhp[g.char[i]] * 100;
-          if (hp <= -100) hp = -100;
+          // (Chapter 4 on draws the bar without Chapter 3's -100 floor)
           draw_rectangle(xx + 400, yy + 380 + i * 30, xx + 400 + hp, yy + 380 + i * 30 + 15, false);
         }
       }
@@ -913,7 +913,7 @@ class BattleController extends Instance {
     draw_set_color(0x808080);
     draw_text(xx + 500, yy + 375, string_hash_to_newline(this.actdesc[actcoord] ?? ' '));
     if (g.tensionselect > 0) {
-      const thiscost = round(this.acttpcost[actcoord] / g.maxtension * 100);
+      const thiscost = floor(this.acttpcost[actcoord] / g.maxtension * 100);
       draw_set_color(0xffa040);
       draw_text(xx + 500, yy + 440, string_hash_to_newline(gmlString(thiscost) + '% TP'));
     }
